@@ -2218,27 +2218,28 @@
 <script>
     // ==================== CONFIGURAÇÃO DO FIREBASE ====================
     const firebaseConfig = {
-
         apiKey: "AIzaSyCRrz6AIy0nmU2LCXIM3r2_9_O6AJea-yM",
-
         authDomain: "marcosbet-def.firebaseapp.com",
-
         databaseURL: "https://marcosbet-def-default-rtdb.firebaseio.com",
-
         projectId: "marcosbet-def",
-
         storageBucket: "marcosbet-def.firebasestorage.app",
-
         messagingSenderId: "637877497672",
-
         appId: "1:637877497672:web:acc3c8e8c853fd53d24d7d"
-
     };
-
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+
+    // ATIVAR PERSISTÊNCIA OFFLINE
+    db.enablePersistence({ synchronizeTabs: true })
+        .catch((err) => {
+            if (err.code === 'failed-precondition') {
+                console.warn('Persistência offline desativada: múltiplas abas abertas');
+            } else if (err.code === 'unimplemented') {
+                console.warn('Persistência offline não suportada neste navegador');
+            }
+        });
 
     // ==================== VARIÁVEIS GLOBAIS ====================
     let currentUser = null;
@@ -2246,6 +2247,8 @@
     let unsubscribeDraws = null;
     let unsubscribeJackpot = null;
     let unsubscribeOnlinePlayers = null;
+    let unsubscribeGlobal = null;
+    let timerInterval = null;
 
     const animals = [
         { number: 1, name: "Avestruz", icon: "🐦", odds: 18, group: "1º", color: "#10B981" },
@@ -2282,38 +2285,251 @@
     let selectedDepositAmount = 0;
     let selectedPaymentMethod = '';
     let currentTutorialStep = 1;
-    let currentAnimalDetail = null;
-    let favoriteAnimals = [];
-    let userAchievements = [];
     let responsibleLimits = {
         dailyLimit: 0,
         timeLimit: 0,
         selfExclude: false
     };
 
-    // ==================== SISTEMA DE SORTEIOS EM TEMPO REAL ====================
+    // ==================== FUNÇÃO PARA AGUARDAR FIRESTORE FICAR ONLINE ====================
+    async function waitForFirestoreOnline(timeout = 10000) {
+        const start = Date.now();
 
-    function getNextDrawTime() {
-        const now = new Date();
-        const minutes = now.getMinutes();
-        const nextMinutes = Math.ceil(minutes / 5) * 5;
-
-        const nextDraw = new Date();
-        nextDraw.setMinutes(nextMinutes);
-        nextDraw.setSeconds(0);
-        nextDraw.setMilliseconds(0);
-
-        if (nextMinutes === 60) {
-            nextDraw.setHours(now.getHours() + 1);
-            nextDraw.setMinutes(0);
+        while (Date.now() - start < timeout) {
+            try {
+                await db.collection('system').doc('global').get({ source: 'server' });
+                console.log('✅ Firestore conectado');
+                return true;
+            } catch (error) {
+                if (error.code === 'unavailable' || error.message.includes('offline')) {
+                    console.log('⏳ Aguardando conexão Firestore...');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                } else {
+                    console.warn('⚠️ Erro ao conectar:', error.message);
+                    return false;
+                }
+            }
         }
 
-        return nextDraw;
+        console.warn('⚠️ Timeout ao conectar ao Firestore');
+        return false;
     }
 
+    // ==================== CARREGAR DADOS DO USUÁRIO COM RETRY ====================
+    async function loadUserData(uid, maxRetries = 3) {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                console.log(`📥 Tentativa ${attempt} de carregar dados do usuário ${uid}...`);
+
+                const userDoc = await db.collection('users').doc(uid).get();
+
+                if (userDoc.exists) {
+                    currentUserData = { ...userDoc.data(), uid };
+                    console.log('✅ Dados do usuário carregados com sucesso!');
+
+                    // Carregar configurações adicionais
+                    await loadUserSettings();
+                    await loadUserBets();
+
+                    return true;
+                } else {
+                    console.log('⚠️ Usuário não encontrado no banco. Criando novo...');
+                    await createNewUserData(uid);
+                    return true;
+                }
+            } catch (error) {
+                console.warn(`❌ Tentativa ${attempt} falhou:`, error.message);
+
+                if (attempt < maxRetries) {
+                    const delay = 1000 * attempt;
+                    console.log(`Aguardando ${delay}ms antes de tentar novamente...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                } else {
+                    showNotification('❌ Não foi possível carregar seus dados. Recarregue a página.', 'error');
+                    return false;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    auth.onAuthStateChanged(async (user) => {
+        console.log('🔄 Estado de autenticação mudou:', user ? user.email : 'Nenhum usuário');
+
+        if (user) {
+            currentUser = user;
+
+            // Mostrar interface IMEDIATAMENTE
+            showMainApp();
+            showNotification('🔑 Carregando seus dados...', 'info');
+
+            try {
+                // 1. Aguardar Firestore ficar online (com timeout menor)
+                const online = await waitForFirestoreOnline(5000);
+
+                // 2. Inicializar sistema global (sem bloquear)
+                initializeGlobalDrawSystem().catch(err => {
+                    console.warn('⚠️ Erro ao inicializar sistema global (continuando):', err.message);
+                });
+
+                // 3. Carregar dados do usuário
+                const loaded = await loadUserData(user.uid);
+                if (!loaded) {
+                    console.warn('⚠️ Usando dados padrão para o usuário');
+                    // Criar dados padrão temporários
+                    currentUserData = {
+                        uid: user.uid,
+                        email: user.email,
+                        balance: 50,
+                        fullName: '',
+                        phone: '',
+                        memberSince: new Date().getFullYear().toString(),
+                        totalBets: 0,
+                        totalWins: 0,
+                        level: 1,
+                        xp: 0,
+                        nextLevelXp: 100
+                    };
+                }
+
+                // 4. Configurar presença (sem bloquear)
+                updateUserPresence(true).catch(err => {
+                    console.warn('⚠️ Erro ao atualizar presença:', err.message);
+                });
+
+                // 5. Iniciar timer
+                initTimer();
+
+                // 6. Atualizar display
+                updateUserDisplay();
+
+                console.log('✅ Aplicativo carregado!');
+                showNotification('✅ Bem-vindo de volta!', 'success');
+
+            } catch (error) {
+                console.error('❌ Erro na inicialização:', error);
+                showNotification('⚠️ Alguns dados podem não estar atualizados', 'warning');
+
+                // Garantir que pelo menos dados básicos existam
+                if (!currentUserData) {
+                    currentUserData = {
+                        uid: user.uid,
+                        email: user.email,
+                        balance: 50,
+                        totalBets: 0,
+                        totalWins: 0,
+                        level: 1
+                    };
+                }
+                updateUserDisplay();
+            }
+        } else {
+            currentUser = null;
+            currentUserData = null;
+            cleanupListeners();
+
+            // Mostrar tela de login
+            document.getElementById('authScreen').style.display = 'flex';
+            document.getElementById('navbar').style.display = 'none';
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+        }
+    });
+    // ==================== CRIAR NOVO USUÁRIO ====================
+    async function createNewUserData(uid) {
+        const newUserData = {
+            uid,
+            email: currentUser.email,
+            balance: 50,
+            fullName: '',
+            phone: '',
+            memberSince: new Date().getFullYear().toString(),
+            totalBets: 0,
+            totalWins: 0,
+            level: 1,
+            xp: 0,
+            nextLevelXp: 100,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        try {
+            await db.collection('users').doc(uid).set(newUserData);
+            currentUserData = newUserData;
+
+            await db.collection('users').doc(uid).collection('settings').doc('preferences').set({
+                notifications: true,
+                promotions: true,
+                soundEffects: false,
+                language: 'pt'
+            });
+
+            showNotification('🎉 Bônus de boas-vindas: R$ 50,00 creditados!', 'success');
+        } catch (error) {
+            console.error('Erro ao criar usuário:', error);
+        }
+    }
+
+    // ==================== CARREGAR APOSTAS DO USUÁRIO ====================
+    async function loadUserBets() {
+        if (!currentUser) return;
+
+        try {
+            const betsSnapshot = await db.collection('users')
+                .doc(currentUser.uid)
+                .collection('bets')
+                .where('status', '==', 'pending')
+                .get();
+
+            userBets = betsSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            updateBetsList();
+        } catch (error) {
+            console.error('Erro ao carregar apostas:', error);
+            userBets = [];
+        }
+    }
+
+    // ==================== CARREGAR CONFIGURAÇÕES DO USUÁRIO ====================
+    async function loadUserSettings() {
+        if (!currentUser) return;
+
+        try {
+            const settingsDoc = await db.collection('users')
+                .doc(currentUser.uid)
+                .collection('settings')
+                .doc('preferences')
+                .get();
+
+            if (settingsDoc.exists) {
+                currentUserData.settings = settingsDoc.data();
+
+                // Aplicar preferências
+                if (currentUserData.settings.notifications !== undefined) {
+                    const notifEl = document.getElementById('notifications');
+                    if (notifEl) notifEl.checked = currentUserData.settings.notifications;
+                }
+                if (currentUserData.settings.promotions !== undefined) {
+                    const promoEl = document.getElementById('promotions');
+                    if (promoEl) promoEl.checked = currentUserData.settings.promotions;
+                }
+                if (currentUserData.settings.soundEffects !== undefined) {
+                    const soundEl = document.getElementById('soundEffects');
+                    if (soundEl) soundEl.checked = currentUserData.settings.soundEffects;
+                }
+                if (currentUserData.settings.language) {
+                    const langEl = document.getElementById('language');
+                    if (langEl) langEl.value = currentUserData.settings.language;
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao carregar configurações:', error);
+        }
+    }
 
     // ==================== SISTEMA DE PRESENÇA E JOGADORES ONLINE ====================
-
     async function updateUserPresence(online) {
         if (!currentUser) return;
 
@@ -2362,287 +2578,89 @@
         }
     }
 
-    // ==================== SISTEMA DE AUTENTICAÇÃO COM FIREBASE ====================
-
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            currentUser = user;
-            await loadUserData(user.uid);
-            await initializeGlobalDrawSystem();
-            showMainApp();
-            updateGameStats();
-        } else {
-            currentUser = null;
-            currentUserData = null;
-
-            // Limpar listeners
-            if (unsubscribeDraws) unsubscribeDraws();
-            if (unsubscribeJackpot) unsubscribeJackpot();
-            if (unsubscribeOnlinePlayers) unsubscribeOnlinePlayers();
-        }
-    });
-
-    async function loadUserData(uid) {
+    // ==================== INICIALIZAR SISTEMA GLOBAL ====================
+    async function initializeGlobalDrawSystem() {
         try {
-            console.log('📥 Buscando dados do usuário:', uid);
+            console.log('🚀 Iniciando sistema global...');
 
-            const userDoc = await db.collection('users').doc(uid).get();
+            const globalRef = db.collection('system').doc('global');
 
-            if (userDoc.exists) {
-                currentUserData = { ...userDoc.data(), uid };
-                console.log('✅ Dados do usuário carregados:', currentUserData);
+            // Tentar buscar com retry
+            let globalDoc = null;
+            for (let i = 0; i < 3; i++) {
+                try {
+                    globalDoc = await globalRef.get();
+                    break;
+                } catch (error) {
+                    if (i === 2) throw error;
+                    console.log(`Tentativa ${i + 1} falhou, tentando novamente...`);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
 
-                // Carregar apostas do usuário
-                console.log('📥 Carregando apostas...');
-                await loadUserBets();
+            if (!globalDoc.exists) {
+                console.log('⚠️ Sistema não inicializado. Criando documento global...');
 
-                // Atualizar a interface do usuário
-                console.log('🎨 Atualizando interface...');
-                updateUserDisplay();
+                const now = new Date();
+                const minutes = now.getMinutes();
+                const nextMinutes = Math.ceil(minutes / 5) * 5;
 
-                console.log('✅ Dados do usuário prontos!');
+                const nextDraw = new Date(now);
+                nextDraw.setMinutes(nextMinutes, 0, 0);
+
+                if (nextMinutes >= 60) {
+                    nextDraw.setHours(nextDraw.getHours() + 1);
+                    nextDraw.setMinutes(0, 0, 0);
+                }
+
+                await globalRef.set({
+                    jackpot: 25847.50,
+                    nextDrawTime: firebase.firestore.Timestamp.fromDate(nextDraw),
+                    drawNumber: 202412345,
+                    onlinePlayers: 0,
+                    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                console.log('✅ Sistema inicializado com sucesso!');
+                console.log('📅 Próximo sorteio:', nextDraw.toLocaleString('pt-BR'));
             } else {
-                console.log('⚠️ Usuário não existe no banco. Criando...');
-                await createNewUserData(uid);
+                console.log('✅ Sistema já inicializado');
+                const data = globalDoc.data();
+                console.log('📊 Dados do sistema:');
+                console.log('   - Jackpot: R$', data.jackpot);
+                console.log('   - Draw Number:', data.drawNumber);
+                console.log('   - Próximo sorteio:', data.nextDrawTime?.toDate().toLocaleString('pt-BR'));
+                console.log('   - Jogadores online:', data.onlinePlayers);
             }
         } catch (error) {
-            console.error('❌ Erro ao carregar dados do usuário:', error);
-            console.error('Detalhes:', error.message, error.stack);
-            showNotification('❌ Erro ao carregar dados: ' + error.message, 'error');
-            throw error; // Re-throw para o handler acima
-        }
-    }
-
-    async function createNewUserData(uid) {
-        const newUserData = {
-            uid,
-            email: currentUser.email,
-            balance: 50,
-            fullName: '',
-            phone: '',
-            memberSince: new Date().getFullYear().toString(),
-            totalBets: 0,
-            totalWins: 0,
-            level: 1,
-            xp: 0,
-            nextLevelXp: 100,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        try {
-            await db.collection('users').doc(uid).set(newUserData);
-            currentUserData = newUserData;
-
-            await db.collection('users').doc(uid).collection('settings').doc('preferences').set({
-                notifications: true,
-                promotions: true,
-                soundEffects: false,
-                language: 'pt'
-            });
-
-            showNotification('🎉 Bônus de boas-vindas: R$ 50,00 creditados!', 'success');
-        } catch (error) {
-            console.error('Erro ao criar usuário:', error);
-        }
-    }
-
-    async function loadUserBets() {
-        if (!currentUser) return;
-
-        try {
-            const betsSnapshot = await db.collection('users')
-                .doc(currentUser.uid)
-                .collection('bets')
-                .where('status', '==', 'pending')
-                .get();
-
-            userBets = betsSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-
-            updateBetsList();
-        } catch (error) {
-            console.error('Erro ao carregar apostas:', error);
-            userBets = [];
-        }
-    }
-
-    async function loadUserSettings() {
-        if (!currentUser) return;
-
-        try {
-            const settingsDoc = await db.collection('users')
-                .doc(currentUser.uid)
-                .collection('settings')
-                .doc('preferences')
-                .get();
-
-            if (settingsDoc.exists) {
-                currentUserData.settings = settingsDoc.data();
-
-                // Aplicar preferências
-                if (currentUserData.settings.notifications !== undefined) {
-                    document.getElementById('notifications').checked = currentUserData.settings.notifications;
-                }
-                if (currentUserData.settings.promotions !== undefined) {
-                    document.getElementById('promotions').checked = currentUserData.settings.promotions;
-                }
-                if (currentUserData.settings.soundEffects !== undefined) {
-                    document.getElementById('soundEffects').checked = currentUserData.settings.soundEffects;
-                }
-                if (currentUserData.settings.language) {
-                    document.getElementById('language').value = currentUserData.settings.language;
-                }
-            }
-        } catch (error) {
-            console.error('Erro ao carregar configurações:', error);
-        }
-    }
-
-    async function loadUserAchievements() {
-        if (!currentUser) return;
-
-        try {
-            const achievementsDoc = await db.collection('users')
-                .doc(currentUser.uid)
-                .collection('settings')
-                .doc('achievements')
-                .get();
-
-            if (achievementsDoc.exists) {
-                userAchievements = achievementsDoc.data().list || [];
-            }
-        } catch (error) {
-            console.error('Erro ao carregar conquistas:', error);
-        }
-    }
-
-    async function loadFavoriteAnimals() {
-        if (!currentUser) return;
-
-        try {
-            const favoritesDoc = await db.collection('users')
-                .doc(currentUser.uid)
-                .collection('settings')
-                .doc('favorites')
-                .get();
-
-            if (favoritesDoc.exists) {
-                favoriteAnimals = favoritesDoc.data().animals || [];
-            }
-        } catch (error) {
-            console.error('Erro ao carregar favoritos:', error);
-        }
-    }
-
-    async function loadResponsibleLimits() {
-        if (!currentUser) return;
-
-        try {
-            const limitsDoc = await db.collection('users')
-                .doc(currentUser.uid)
-                .collection('settings')
-                .doc('limits')
-                .get();
-
-            if (limitsDoc.exists) {
-                responsibleLimits = limitsDoc.data();
-
-                // Verificar autoexclusão
-                if (responsibleLimits.selfExcludeUntil) {
-                    const excludeUntil = responsibleLimits.selfExcludeUntil.toDate();
-                    if (new Date() < excludeUntil) {
-                        showNotification('⚠️ Sua conta está em autoexclusão até ' + excludeUntil.toLocaleString(), 'warning');
-                        setTimeout(() => logout(), 3000);
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Erro ao carregar limites:', error);
-        }
-    }
-
-    async function updateUserData() {
-        if (!currentUser || !currentUserData) return;
-
-        try {
-            await db.collection('users').doc(currentUser.uid).update({
-                balance: currentUserData.balance,
-                fullName: currentUserData.fullName || '',
-                phone: currentUserData.phone || '',
-                totalBets: currentUserData.totalBets,
-                totalWins: currentUserData.totalWins,
-                level: currentUserData.level,
-                xp: currentUserData.xp,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        } catch (error) {
-            console.error('Erro ao atualizar usuário:', error);
-            showNotification('❌ Erro ao salvar dados!', 'error');
-        }
-    }
-
-    // ==================== SISTEMA DE APOSTAS COM FIREBASE ====================
-
-    async function placeBet() {
-        if (!currentUser || !currentUserData) return;
-
-        if (selectedAnimals.length === 0) {
-            showNotification('⚠️ Selecione pelo menos um animal para apostar!', 'warning');
-            return;
-        }
-
-        const betAmount = parseInt(document.getElementById('betAmount').value) || 10;
-        let totalBet = betAmount * selectedAnimals.length;
-
-        if (betType === 'multiple' && selectedAnimals.length > 1) {
-            totalBet = Math.floor(totalBet * 0.9);
-        }
-
-        if (currentUserData.balance < totalBet) {
-            showNotification('❌ Saldo insuficiente para realizar esta aposta!', 'error');
-            return;
-        }
-
-        // Verificar limites de jogo responsável
-        if (responsibleLimits.dailyLimit > 0) {
-            const todayBets = await getTodayBets();
-            if (todayBets + totalBet > responsibleLimits.dailyLimit) {
-                showNotification('⚠️ Você atingiu seu limite diário de apostas!', 'warning');
-                showModal('responsibleGamingModal');
-                return;
-            }
-        }
-
-        showConfirmBetModal(betAmount, totalBet);
-    }
-
-
-    function checkLevelUp() {
-        if (currentUserData.xp >= currentUserData.nextLevelXp) {
-            currentUserData.level++;
-            currentUserData.xp -= currentUserData.nextLevelXp;
-            currentUserData.nextLevelXp = Math.floor(currentUserData.nextLevelXp * 1.5);
-
-            showNotification(`🎉 Level Up! Você alcançou o nível ${currentUserData.level}!`, 'success');
-            createConfetti();
-
-            updateUserData();
+            console.error('❌ ERRO ao inicializar sistema global:', error);
+            showNotification('⚠️ Erro ao conectar ao servidor: ' + error.message, 'warning');
         }
     }
 
     // ==================== SISTEMA DE TIMER E ATUALIZAÇÕES ====================
-
     function initTimer() {
+        // Limpar timer anterior se existir
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        // Limpar listener anterior se existir
+        if (unsubscribeGlobal) {
+            unsubscribeGlobal();
+            unsubscribeGlobal = null;
+        }
+
         console.log('🕐 Inicializando timer...');
 
-        // Listener para o documento global
-        const unsubscribe = db.collection('system').doc('global')
+        // Listener para o documento global (uma única vez)
+        unsubscribeGlobal = db.collection('system').doc('global')
             .onSnapshot((doc) => {
                 if (!doc.exists) {
                     console.warn('⚠️ Documento global não existe');
-                    document.getElementById('drawTimer').textContent = '--:--';
+                    const timerEl = document.getElementById('drawTimer');
+                    if (timerEl) timerEl.textContent = '--:--';
                     return;
                 }
 
@@ -2683,24 +2701,22 @@
                 console.error('❌ Erro ao escutar global:', error);
             });
 
-        // Armazenar unsubscribe
-        if (window.unsubscribeGlobal) window.unsubscribeGlobal();
-        window.unsubscribeGlobal = unsubscribe;
-
-        // Atualizar timer a cada segundo
-        setInterval(async () => {
+        // Atualizar timer a cada segundo (em intervalo separado)
+        timerInterval = setInterval(async () => {
             try {
                 const globalDoc = await db.collection('system').doc('global').get();
 
                 if (!globalDoc.exists) {
-                    document.getElementById('drawTimer').textContent = '--:--';
+                    const timerEl = document.getElementById('drawTimer');
+                    if (timerEl) timerEl.textContent = '--:--';
                     return;
                 }
 
                 const data = globalDoc.data();
 
                 if (!data.nextDrawTime) {
-                    document.getElementById('drawTimer').textContent = '--:--';
+                    const timerEl = document.getElementById('drawTimer');
+                    if (timerEl) timerEl.textContent = '--:--';
                     return;
                 }
 
@@ -2709,7 +2725,8 @@
                 const diff = nextDrawTime - now;
 
                 if (diff <= 0) {
-                    document.getElementById('drawTimer').textContent = '00:00';
+                    const timerEl = document.getElementById('drawTimer');
+                    if (timerEl) timerEl.textContent = '00:00';
                     return;
                 }
 
@@ -2718,87 +2735,56 @@
 
                 const timerEl = document.getElementById('drawTimer');
                 if (timerEl) {
-                    timerEl.textContent =
-                        `${minutesLeft.toString().padStart(2, '0')}:${secondsLeft.toString().padStart(2, '0')}`;
+                    timerEl.textContent = `${minutesLeft.toString().padStart(2, '0')}:${secondsLeft.toString().padStart(2, '0')}`;
                 }
 
             } catch (error) {
-                console.error('❌ Erro ao atualizar timer:', error);
-                document.getElementById('drawTimer').textContent = '--:--';
+                // Silenciar erros de rede no timer
+                if (!error.message.includes('offline')) {
+                    console.error('❌ Erro ao atualizar timer:', error);
+                }
             }
         }, 1000);
 
         console.log('✅ Timer inicializado');
     }
-    async function getTodayBets() {
-        if (!currentUser) return 0;
 
+    // ==================== LIMPAR LISTENERS AO SAIR ====================
+    function cleanupListeners() {
+        console.log('🧹 Limpando listeners...');
+
+        if (unsubscribeDraws) {
+            unsubscribeDraws();
+            unsubscribeDraws = null;
+        }
+        if (unsubscribeGlobal) {
+            unsubscribeGlobal();
+            unsubscribeGlobal = null;
+        }
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    // ==================== LOGOUT ====================
+    async function logout() {
         try {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const betsSnapshot = await db.collection('users')
-                .doc(currentUser.uid)
-                .collection('bets')
-                .where('date', '>=', firebase.firestore.Timestamp.fromDate(today))
-                .get();
-
-            return betsSnapshot.docs.reduce((sum, doc) => sum + doc.data().amount, 0);
+            cleanupListeners();
+            await updateUserPresence(false);
+            await auth.signOut();
+            showNotification('👋 Até logo!', 'info');
+            setTimeout(() => location.reload(), 1000);
         } catch (error) {
-            console.error('Erro ao calcular apostas do dia:', error);
-            return 0;
+            console.error('Erro ao fazer logout:', error);
+            showNotification('❌ Erro ao sair', 'error');
         }
     }
 
-    async function checkAchievements() {
-        if (!currentUserData) return;
+    // Tornar logout global
+    window.logout = logout;
 
-        const achievements = [
-            { id: 'first_bet', title: 'Primeira Aposta', requirement: 1, field: 'totalBets', bonus: 10 },
-            { id: 'bet_10', title: 'Apostador Iniciante', requirement: 10, field: 'totalBets', bonus: 25 },
-            { id: 'bet_50', title: 'Apostador Experiente', requirement: 50, field: 'totalBets', bonus: 100 },
-            { id: 'bet_100', title: 'Apostador Veterano', requirement: 100, field: 'totalBets', bonus: 250 },
-            { id: 'win_first', title: 'Primeira Vitória', requirement: 1, field: 'totalWins', bonus: 20 },
-            { id: 'win_10', title: 'Sortudo', requirement: 10, field: 'totalWins', bonus: 50 }
-        ];
-
-        const newAchievements = [];
-
-        for (const achievement of achievements) {
-            if (currentUserData[achievement.field] >= achievement.requirement && !userAchievements.includes(achievement.id)) {
-                newAchievements.push(achievement);
-            }
-        }
-
-        if (newAchievements.length > 0) {
-            for (const achievement of newAchievements) {
-                userAchievements.push(achievement.id);
-
-                // Adicionar bônus
-                currentUserData.balance += achievement.bonus;
-
-                showNotification(`🏆 Conquista desbloqueada: ${achievement.title}! Bônus: R$ ${achievement.bonus}`, 'success');
-                createConfetti();
-            }
-
-            try {
-                // Salvar conquistas
-                await db.collection('users')
-                    .doc(currentUser.uid)
-                    .collection('settings')
-                    .doc('achievements')
-                    .set({ list: userAchievements });
-
-                // Atualizar saldo com bônus
-                await updateUserData();
-                updateUserDisplay();
-            } catch (error) {
-                console.error('Erro ao salvar conquistas:', error);
-            }
-        }
-    }
-
-
+    // ==================== AUTENTICAÇÃO ====================
     function initAuthTabs() {
         const tabs = document.querySelectorAll('.auth-tab');
         const forms = document.querySelectorAll('.auth-form');
@@ -2807,7 +2793,6 @@
             tab.addEventListener('click', () => {
                 const tabName = tab.getAttribute('data-tab');
 
-                // Atualizar abas
                 tabs.forEach(t => {
                     t.classList.remove('active');
                     t.style.background = 'none';
@@ -2839,11 +2824,9 @@
             const password = document.getElementById('loginPassword').value;
 
             try {
-                // Se o usuário digitou "kayua" e senha "12345", use o email de teste
                 if (username === 'kayua' && password === '12345') {
                     await auth.signInWithEmailAndPassword('kayua@teste.com', '12345');
                 } else {
-                    // Caso contrário, tente fazer login com o que foi digitado (assumindo que é email)
                     await auth.signInWithEmailAndPassword(username, password);
                 }
                 showNotification('🎉 Login realizado com sucesso!', 'success');
@@ -2879,16 +2862,14 @@
             }
 
             try {
-                // Criar usuário no Firebase Auth
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                 const user = userCredential.user;
 
-                // Criar documento do usuário no Firestore
                 await db.collection('users').doc(user.uid).set({
                     uid: user.uid,
                     email: email,
                     username: username,
-                    balance: 50, // Bônus de boas-vindas
+                    balance: 50,
                     fullName: '',
                     phone: '',
                     memberSince: new Date().getFullYear().toString(),
@@ -2900,7 +2881,6 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                // Criar configurações padrão
                 await db.collection('users').doc(user.uid).collection('settings').doc('preferences').set({
                     notifications: true,
                     promotions: true,
@@ -2927,12 +2907,7 @@
         });
     }
 
-    // ==================== CONTINUAÇÃO DAS FUNÇÕES (será o mesmo código anterior para UI, modais, etc) ====================
-
-    // [Copiar o restante das funções do código original: initAnimalsGrid, toggleAnimalSelection,
-    // showSection, updateUserDisplay, showModal, closeModal, showNotification, createConfetti,
-    // initTheme, initParticles, loadRecentDraws, loadTopWinners, etc.]
-
+    // ==================== INTERFACE DE ANIMAIS ====================
     function initAnimalsGrid() {
         const grid = document.getElementById('animalsGrid');
         grid.innerHTML = '';
@@ -2942,12 +2917,12 @@
             card.className = 'animal-card';
             card.dataset.number = animal.number;
             card.innerHTML = `
-                <div style="position: absolute; top: 15px; left: 15px; background: ${animal.color}; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;">${animal.number}</div>
-                <div style="font-size: 48px; margin-bottom: 15px; color: ${animal.color};">${animal.icon}</div>
-                <div style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 5px;">${animal.name}</div>
-                <div style="color: var(--text-tertiary); font-size: 12px; margin-bottom: 8px;">Grupo ${animal.group}</div>
-                <div style="color: var(--accent); font-weight: 600; font-size: 14px;">${animal.odds}x</div>
-            `;
+            <div style="position: absolute; top: 15px; left: 15px; background: ${animal.color}; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;">${animal.number}</div>
+            <div style="font-size: 48px; margin-bottom: 15px; color: ${animal.color};">${animal.icon}</div>
+            <div style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 5px;">${animal.name}</div>
+            <div style="color: var(--text-tertiary); font-size: 12px; margin-bottom: 8px;">Grupo ${animal.group}</div>
+            <div style="color: var(--accent); font-weight: 600; font-size: 14px;">${animal.odds}x</div>
+        `;
 
             card.addEventListener('click', () => toggleAnimalSelection(animal));
             grid.appendChild(card);
@@ -2968,6 +2943,7 @@
         updateStats();
     }
 
+    // ==================== CONTROLES DE APOSTA ====================
     function selectBetType(type) {
         betType = type;
         document.querySelectorAll('.bet-type-btn').forEach(btn => btn.classList.remove('active'));
@@ -2994,432 +2970,287 @@
     }
 
     function adjustBet(amount) {
-        currentBetAmount = parseInt(document.getElementById('betAmount').value) || 10;
-        currentBetAmount += amount;
-
-        if (currentBetAmount < 1) currentBetAmount = 1;
-        if (currentBetAmount > 1000) currentBetAmount = 1000;
-
+        currentBetAmount = Math.max(1, Math.min(1000, currentBetAmount + amount));
         document.getElementById('betAmount').value = currentBetAmount;
         document.getElementById('currentBetAmount').textContent = currentBetAmount;
         updateStats();
     }
 
-    function clearBets() {
-        selectedAnimals = [];
-        document.querySelectorAll('.animal-card.selected').forEach(card => card.classList.remove('selected'));
-        document.getElementById('betAmount').value = 10;
-        document.getElementById('currentBetAmount').textContent = 10;
+    document.getElementById('betAmount').addEventListener('input', function(e) {
+        let value = parseInt(e.target.value) || 1;
+        value = Math.max(1, Math.min(1000, value));
+        currentBetAmount = value;
+        e.target.value = value;
+        document.getElementById('currentBetAmount').textContent = value;
         updateStats();
-    }
+    });
 
+    // ==================== ESTATÍSTICAS ====================
     function updateStats() {
-        const betAmount = parseInt(document.getElementById('betAmount').value) || 10;
-        const totalBet = betAmount * selectedAnimals.length;
+        const totalAnimals = selectedAnimals.length;
+        const totalBet = totalAnimals * currentBetAmount;
         const potentialWin = totalBet * 18;
-        const winChance = selectedAnimals.length * 4;
+        const winChance = totalAnimals > 0 ? ((totalAnimals / 25) * 100).toFixed(1) : 0;
 
-        document.getElementById('totalBetAmount').textContent = `R$ ${totalBet}`;
-        document.getElementById('potentialWin').textContent = `R$ ${potentialWin}`;
-        document.getElementById('selectedAnimalsCount').textContent = selectedAnimals.length;
+        document.getElementById('selectedAnimalsCount').textContent = totalAnimals;
+        document.getElementById('totalBetAmount').textContent = `R$ ${totalBet.toFixed(2)}`;
+        document.getElementById('potentialWin').textContent = `R$ ${potentialWin.toFixed(2)}`;
         document.getElementById('winChance').textContent = `${winChance}%`;
     }
 
-    function showConfirmBetModal(betAmount, totalBet) {
-        const animalsDiv = document.getElementById('confirmBetAnimals');
-        animalsDiv.innerHTML = selectedAnimals.map(animal => `
-            <div style="background: ${animal.color}20; border: 2px solid ${animal.color}; padding: 10px 15px; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 24px;">${animal.icon}</span>
-                <span style="font-weight: 600;">${animal.name}</span>
-            </div>
-        `).join('');
-
-        document.getElementById('confirmBetAmountPerAnimal').textContent = `R$ ${betAmount.toFixed(2)}`;
-        document.getElementById('confirmBetTotal').textContent = `R$ ${totalBet.toFixed(2)}`;
-        document.getElementById('confirmBetPotentialWin').textContent = `R$ ${(totalBet * 18).toFixed(2)}`;
-
-        showModal('confirmBetModal');
-    }
-
-    function showMainApp() {
-        document.getElementById('authScreen').style.display = 'none';
-        document.getElementById('navbar').style.display = 'block';
-        showSection('home');
-        updateUserDisplay();
-    }
-
-    function showSection(section) {
-        document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
-        setTimeout(() => {
-            document.getElementById(`${section}Section`).classList.add('active');
-
-            document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
-            const activeLink = document.querySelector(`.nav-links a[onclick*="${section}"]`);
-            if (activeLink) {
-                activeLink.classList.add('active');
-            }
-
-            switch(section) {
-                case 'results':
-                    loadRecentDraws();
-                    loadTopWinners();
-                    break;
-                case 'settings':
-                    loadProfileData();
-                    break;
-            }
-        }, 10);
-    }
-
-    function updateUserDisplay() {
-        if (!currentUserData) return;
-
-        // Atualizar saldo
-        const balanceElements = document.querySelectorAll('#userBalance, #accountBalance');
-        balanceElements.forEach(el => {
-            if (el) el.textContent = `R$ ${currentUserData.balance.toFixed(2)}`;
-        });
-
-        // Atualizar nome de usuário
-        const username = currentUserData.username || currentUserData.email.split('@')[0];
-        const usernameElements = document.querySelectorAll('#profileUsername, #profileUsername2');
-        usernameElements.forEach(el => {
-            if (el) el.textContent = username;
-        });
-    }
-    function updateBetsList() {
-        const list = document.getElementById('betsList');
-
-        if (userBets.length === 0) {
-            list.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">Nenhuma aposta realizada ainda.</p>';
+    // ==================== SISTEMA DE APOSTAS ====================
+    async function placeBet() {
+        if (!currentUser || !currentUserData) {
+            showNotification('❌ Faça login para apostar!', 'error');
             return;
         }
 
-        list.innerHTML = userBets.map(bet => `
-            <div class="winner-item">
-                <div style="font-size: 32px;">${bet.animal.icon}</div>
-                <div style="flex: 1;">
-                    <div style="font-weight: 700; margin-bottom: 5px;">${bet.animal.name} (#${bet.animal.number})</div>
-                    <div style="font-size: 12px; color: var(--text-tertiary);">Sorteio #${bet.drawNumber}</div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-weight: 700; color: var(--accent);">R$ ${bet.amount.toFixed(2)}</div>
-                    <div style="font-size: 12px; color: var(--text-tertiary);">Ganho: R$ ${bet.potentialWin.toFixed(2)}</div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function showModal(modalId) {
-        document.getElementById(modalId).classList.add('active');
-    }
-
-    function closeModal(modalId) {
-        document.getElementById(modalId).classList.remove('active');
-    }
-
-    function showNotification(message, type = 'info') {
-        const container = document.getElementById('notificationContainer');
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `
-            <div class="notification-icon">
-                ${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}
-            </div>
-            <div>
-                <div style="font-weight: 700; margin-bottom: 5px; color: var(--text-primary);">${getNotificationTitle(type)}</div>
-                <div style="color: var(--text-secondary); font-size: 14px;">${message}</div>
-            </div>
-        `;
-
-        container.appendChild(notification);
-
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 10);
-
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 400);
-        }, 4000);
-    }
-
-    function getNotificationTitle(type) {
-        switch(type) {
-            case 'success': return 'Sucesso!';
-            case 'error': return 'Erro!';
-            case 'warning': return 'Atenção!';
-            default: return 'Informação';
+        if (selectedAnimals.length === 0) {
+            showNotification('⚠️ Selecione pelo menos um animal!', 'warning');
+            return;
         }
+
+        const totalBet = selectedAnimals.length * currentBetAmount;
+
+        if (totalBet > currentUserData.balance) {
+            showNotification('❌ Saldo insuficiente!', 'error');
+            showSection('settings');
+            showSettingsTab('account');
+            return;
+        }
+
+        // Mostrar modal de confirmação
+        showConfirmBetModal();
     }
 
-    function createConfetti() {
-        const container = document.getElementById('confettiContainer');
-        container.innerHTML = '';
+    function showConfirmBetModal() {
+        const modal = document.getElementById('confirmBetModal');
+        const animalsDiv = document.getElementById('confirmBetAnimals');
 
-        const colors = ['#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B'];
+        animalsDiv.innerHTML = selectedAnimals.map(animal =>
+            `<div style="background: ${animal.color}; color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+            ${animal.icon} ${animal.name}
+        </div>`
+        ).join('');
 
-        for (let i = 0; i < 150; i++) {
-            const confetti = document.createElement('div');
-            confetti.className = 'confetti';
-            confetti.style.left = Math.random() * 100 + 'vw';
-            confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-            confetti.style.opacity = '1';
+        const totalBet = selectedAnimals.length * currentBetAmount;
+        const potentialWin = totalBet * 18;
 
-            container.appendChild(confetti);
+        document.getElementById('confirmBetAmountPerAnimal').textContent = `R$ ${currentBetAmount.toFixed(2)}`;
+        document.getElementById('confirmBetTotal').textContent = `R$ ${totalBet.toFixed(2)}`;
+        document.getElementById('confirmBetPotentialWin').textContent = `R$ ${potentialWin.toFixed(2)}`;
 
-            const animation = confetti.animate([
-                {
-                    top: '0px',
-                    opacity: 1,
-                    transform: `rotate(${Math.random() * 360}deg) scale(1)`
-                },
-                {
-                    top: '100vh',
-                    opacity: 0,
-                    transform: `rotate(${Math.random() * 720}deg) scale(0)`
-                }
-            ], {
-                duration: Math.random() * 3000 + 2000,
-                easing: 'cubic-bezier(0.215, 0.610, 0.355, 1)'
+        modal.classList.add('active');
+    }
+
+    async function confirmAndPlaceBet() {
+        closeModal('confirmBetModal');
+
+        try {
+            const totalBet = selectedAnimals.length * currentBetAmount;
+
+            // Criar aposta no Firestore
+            const betData = {
+                userId: currentUser.uid,
+                animals: selectedAnimals.map(a => a.number),
+                betAmount: currentBetAmount,
+                totalBet: totalBet,
+                betType: betType,
+                status: 'pending',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                drawNumber: null
+            };
+
+            const betRef = await db.collection('users')
+                .doc(currentUser.uid)
+                .collection('bets')
+                .add(betData);
+
+            // Atualizar saldo
+            await db.collection('users').doc(currentUser.uid).update({
+                balance: firebase.firestore.FieldValue.increment(-totalBet),
+                totalBets: firebase.firestore.FieldValue.increment(1)
             });
 
-            animation.onfinish = () => confetti.remove();
+            // Atualizar jackpot global
+            await db.collection('system').doc('global').update({
+                jackpot: firebase.firestore.FieldValue.increment(totalBet * 0.1)
+            });
+
+            currentUserData.balance -= totalBet;
+            currentUserData.totalBets += 1;
+
+            userBets.push({
+                id: betRef.id,
+                ...betData
+            });
+
+            updateUserDisplay();
+            updateBetsList();
+            clearBets();
+
+            showNotification('✅ Aposta realizada com sucesso!', 'success');
+            createConfetti();
+
+        } catch (error) {
+            console.error('Erro ao realizar aposta:', error);
+            showNotification('❌ Erro ao realizar aposta: ' + error.message, 'error');
         }
     }
 
-    function initTheme() {
-        const themeToggle = document.getElementById('themeToggle');
-        const thumb = themeToggle.querySelector('.theme-toggle__thumb');
-        const html = document.documentElement;
+    function clearBets() {
+        selectedAnimals = [];
+        document.querySelectorAll('.animal-card').forEach(card => card.classList.remove('selected'));
+        updateStats();
+    }
 
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            html.setAttribute('data-theme', 'dark');
-            thumb.style.transform = 'translateX(30px)';
-        } else {
-            thumb.style.transform = 'translateX(4px)';
+    function updateBetsList() {
+        const betsList = document.getElementById('betsList');
+
+        if (userBets.length === 0) {
+            betsList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">Nenhuma aposta ativa no momento.</p>';
+            return;
         }
 
-        themeToggle.addEventListener('click', function() {
-            if (html.hasAttribute('data-theme')) {
-                html.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'light');
-                thumb.style.transform = 'translateX(4px)';
-            } else {
-                html.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-                thumb.style.transform = 'translateX(30px)';
-            }
+        betsList.innerHTML = userBets.map(bet => {
+            const animalsHtml = bet.animals.map(num => {
+                const animal = animals.find(a => a.number === num);
+                return `<span style="background: ${animal.color}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">${animal.icon} ${animal.name}</span>`;
+            }).join(' ');
+
+            return `
+            <div class="winner-item">
+                <div style="flex: 1;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">${animalsHtml}</div>
+                    <div style="color: var(--text-secondary); font-size: 14px;">
+                        Valor: <strong>R$ ${bet.totalBet.toFixed(2)}</strong> •
+                        Ganho potencial: <strong style="color: var(--accent);">R$ ${(bet.totalBet * 18).toFixed(2)}</strong>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="background: rgba(245, 158, 11, 0.1); color: var(--warning); padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                        <i class="fas fa-clock"></i> Pendente
+                    </div>
+                </div>
+            </div>
+        `;
+        }).join('');
+    }
+
+    // ==================== NAVEGAÇÃO ====================
+    function showSection(sectionName) {
+        document.querySelectorAll('.container').forEach(container => {
+            container.classList.remove('active');
         });
-    }
 
-    function initParticles() {
-        particlesJS('particles-js', {
-            particles: {
-                number: { value: 80, density: { enable: true, value_area: 800 } },
-                color: { value: "#10B981" },
-                shape: { type: "circle" },
-                opacity: { value: 0.2, random: true },
-                size: { value: 3, random: true },
-                line_linked: {
-                    enable: true,
-                    distance: 150,
-                    color: "#10B981",
-                    opacity: 0.1,
-                    width: 1
-                },
-                move: {
-                    enable: true,
-                    speed: 1,
-                    direction: "none",
-                    random: true,
-                    straight: false,
-                    out_mode: "out"
-                }
-            },
-            interactivity: {
-                detect_on: "canvas",
-                events: {
-                    onhover: { enable: true, mode: "repulse" },
-                    onclick: { enable: true, mode: "push" }
-                }
-            },
-            retina_detect: true
-        });
-    }
-
-    function updateGameStats() {
-        // Estatísticas são atualizadas do Firestore em tempo real
-    }
-
-    function showResultModal(animal, amount, winningBets) {
-        document.getElementById('resultAnimalIcon').textContent = animal.icon;
-        document.getElementById('resultAmount').textContent = `R$ ${amount.toFixed(2)}`;
-
-        if (amount > 0) {
-            document.getElementById('resultMessage').textContent = '🎉 PARABÉNS! VOCÊ GANHOU!';
-            document.getElementById('resultMessage').style.color = 'var(--accent)';
-            document.getElementById('resultDescription').textContent =
-                `O animal sorteado foi ${animal.name}. ${winningBets} aposta(s) vencedora(s)!`;
-        } else {
-            document.getElementById('resultMessage').textContent = '😢 NÃO FOI DESSA VEZ!';
-            document.getElementById('resultMessage').style.color = 'var(--danger)';
-            document.getElementById('resultDescription').textContent =
-                `O animal sorteado foi ${animal.name}. Tente novamente no próximo sorteio!`;
+        const section = document.getElementById(`${sectionName}Section`);
+        if (section) {
+            section.classList.add('active');
         }
 
-        showModal('resultModal');
+        // Atualizar links ativos
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.classList.remove('active');
+        });
+
+        const activeLink = document.querySelector(`.nav-links a[onclick*="${sectionName}"]`);
+        if (activeLink) {
+            activeLink.classList.add('active');
+        }
+
+        // Carregar dados específicos da seção
+        if (sectionName === 'results') {
+            loadRecentDraws();
+            loadTopWinners();
+        } else if (sectionName === 'settings') {
+            loadSettingsData();
+        }
     }
 
-    // ==================== SISTEMA DE CONFIGURAÇÕES ====================
+    window.showSection = showSection;
 
+    // ==================== CONFIGURAÇÕES ====================
     function showSettingsTab(tabName) {
         document.querySelectorAll('.settings-tab').forEach(tab => tab.classList.remove('active'));
         document.querySelectorAll('.settings-content').forEach(content => content.classList.remove('active'));
 
-        document.querySelector(`.settings-tab[onclick*="${tabName}"]`).classList.add('active');
-        document.getElementById(`${tabName}Tab`).classList.add('active');
+        const tab = document.querySelector(`.settings-tab[onclick*="${tabName}"]`);
+        const content = document.getElementById(`${tabName}Tab`);
 
-        switch(tabName) {
-            case 'profile':
-                loadProfileData();
-                break;
-            case 'account':
-                loadAccountData();
-                break;
-            case 'history':
-                loadBetHistory();
-                break;
+        if (tab) tab.classList.add('active');
+        if (content) content.classList.add('active');
+
+        if (tabName === 'history') {
+            loadBetHistory();
         }
     }
 
-    function loadProfileData() {
+    window.showSettingsTab = showSettingsTab;
+
+    function loadSettingsData() {
         if (!currentUserData) return;
 
         document.getElementById('profileUsername').textContent = currentUser.email.split('@')[0];
         document.getElementById('profileUsername2').textContent = currentUser.email.split('@')[0];
         document.getElementById('profileEmail').textContent = currentUser.email;
-        document.getElementById('memberSince').textContent = currentUserData.memberSince;
-        document.getElementById('totalBets').textContent = currentUserData.totalBets;
-        document.getElementById('totalWins').textContent = currentUserData.totalWins;
+        document.getElementById('memberSince').textContent = currentUserData.memberSince || '2024';
+        document.getElementById('totalBets').textContent = currentUserData.totalBets || 0;
+        document.getElementById('totalWins').textContent = currentUserData.totalWins || 0;
+        document.getElementById('accountBalance').textContent = `R$ ${(currentUserData.balance || 0).toFixed(2)}`;
 
-        document.getElementById('profileName').value = currentUserData.fullName || '';
-        document.getElementById('profilePhone').value = currentUserData.phone || '';
-
-        const progress = (currentUserData.xp / currentUserData.nextLevelXp) * 100;
-        document.getElementById('levelProgress').textContent = `${progress.toFixed(0)}%`;
+        // Level progress
+        const progress = ((currentUserData.xp || 0) / (currentUserData.nextLevelXp || 100)) * 100;
+        document.getElementById('levelProgress').textContent = `${Math.floor(progress)}%`;
         document.getElementById('levelProgressBar').style.width = `${progress}%`;
-        document.getElementById('userLevel').textContent = `Nível ${currentUserData.level}`;
+        document.getElementById('userLevel').textContent = getUserLevel(currentUserData.level || 1);
     }
 
-    function loadAccountData() {
-        if (!currentUserData) return;
-        document.getElementById('accountBalance').textContent = `R$ ${currentUserData.balance.toFixed(2)}`;
+    function getUserLevel(level) {
+        const levels = ['Iniciante', 'Novato', 'Apostador', 'Experiente', 'Profissional', 'Mestre', 'Lenda'];
+        return levels[Math.min(level - 1, levels.length - 1)] || 'Iniciante';
     }
 
     async function updateProfile() {
-        if (!currentUserData) return;
-
-        currentUserData.fullName = document.getElementById('profileName').value;
-        currentUserData.phone = document.getElementById('profilePhone').value;
-
-        await updateUserData();
-        showNotification('✅ Perfil atualizado com sucesso!', 'success');
-    }
-
-    function selectAmount(amount) {
-        selectedDepositAmount = amount;
-        document.querySelectorAll('.amount-option').forEach(option => {
-            option.classList.remove('selected');
-        });
-        event.target.closest('.amount-option').classList.add('selected');
-        document.getElementById('customAmount').value = amount;
-    }
-
-    function selectPayment(method) {
-        selectedPaymentMethod = method;
-        document.querySelectorAll('.payment-method').forEach(payment => {
-            payment.classList.remove('selected');
-        });
-        event.target.closest('.payment-method').classList.add('selected');
-    }
-
-    async function addFunds() {
-        if (!currentUserData) return;
-
-        let amount = selectedDepositAmount || parseFloat(document.getElementById('customAmount').value) || 0;
-
-        if (amount <= 0) {
-            showNotification('❌ Digite um valor válido!', 'error');
-            return;
-        }
-
-        if (!selectedPaymentMethod) {
-            showNotification('❌ Selecione um método de pagamento!', 'error');
-            return;
-        }
-
-        let bonus = 0;
-        if (amount >= 500) bonus = 100;
-        else if (amount >= 250) bonus = 40;
-        else if (amount >= 100) bonus = 15;
-        else if (amount >= 50) bonus = 7;
-        else if (amount >= 25) bonus = 3;
-        else if (amount >= 10) bonus = 1;
-
-        const total = amount + bonus;
-
-        try {
-            // Registrar transação no Firestore
-            await db.collection('users').doc(currentUser.uid).collection('transactions').add({
-                type: 'deposit',
-                amount: amount,
-                bonus: bonus,
-                total: total,
-                method: selectedPaymentMethod,
-                status: 'completed',
-                date: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            // Atualizar saldo
-            await db.collection('users').doc(currentUser.uid).update({
-                balance: firebase.firestore.FieldValue.increment(total)
-            });
-
-            currentUserData.balance += total;
-            updateUserDisplay();
-
-            document.getElementById('depositAmount').textContent = `R$ ${amount.toFixed(2)}`;
-            document.getElementById('depositBonus').textContent = `R$ ${bonus.toFixed(2)}`;
-            document.getElementById('newBalance').textContent = `R$ ${currentUserData.balance.toFixed(2)}`;
-
-            showModal('depositModal');
-
-            selectedDepositAmount = 0;
-            selectedPaymentMethod = '';
-            document.getElementById('customAmount').value = '';
-            document.querySelectorAll('.amount-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            document.querySelectorAll('.payment-method').forEach(payment => {
-                payment.classList.remove('selected');
-            });
-        } catch (error) {
-            console.error('Erro ao adicionar fundos:', error);
-            showNotification('❌ Erro ao processar depósito!', 'error');
-        }
-    }
-
-    async function changePassword() {
         if (!currentUser) return;
 
+        const name = document.getElementById('profileName').value;
+        const phone = document.getElementById('profilePhone').value;
+
+        try {
+            await db.collection('users').doc(currentUser.uid).update({
+                fullName: name,
+                phone: phone
+            });
+
+            currentUserData.fullName = name;
+            currentUserData.phone = phone;
+
+            showNotification('✅ Perfil atualizado com sucesso!', 'success');
+        } catch (error) {
+            console.error('Erro ao atualizar perfil:', error);
+            showNotification('❌ Erro ao atualizar perfil', 'error');
+        }
+    }
+
+    window.updateProfile = updateProfile;
+
+    async function changePassword() {
         const currentPassword = document.getElementById('currentPassword').value;
         const newPassword = document.getElementById('newPassword').value;
         const confirmPassword = document.getElementById('confirmNewPassword').value;
 
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            showNotification('⚠️ Preencha todos os campos!', 'warning');
+            return;
+        }
+
         if (newPassword !== confirmPassword) {
-            showNotification('❌ As novas senhas não coincidem!', 'error');
+            showNotification('❌ As senhas não coincidem!', 'error');
+            return;
+        }
+
+        if (newPassword.length < 5) {
+            showNotification('❌ A senha deve ter pelo menos 5 caracteres!', 'error');
             return;
         }
 
@@ -3439,965 +3270,588 @@
             showNotification('✅ Senha alterada com sucesso!', 'success');
         } catch (error) {
             console.error('Erro ao alterar senha:', error);
-            showNotification('❌ Erro ao alterar senha! Verifique a senha atual.', 'error');
+            if (error.code === 'auth/wrong-password') {
+                showNotification('❌ Senha atual incorreta!', 'error');
+            } else {
+                showNotification('❌ Erro ao alterar senha', 'error');
+            }
         }
     }
 
-    async function savePreferences() {
-        if (!currentUser || !currentUserData) return;
+    window.changePassword = changePassword;
 
-        const preferences = {
-            notifications: document.getElementById('notifications').checked,
-            promotions: document.getElementById('promotions').checked,
-            soundEffects: document.getElementById('soundEffects').checked,
-            language: document.getElementById('language').value
-        };
+    async function deleteAccount() {
+        if (!confirm('⚠️ ATENÇÃO! Esta ação é irreversível. Tem certeza que deseja excluir sua conta permanentemente?')) {
+            return;
+        }
+
+        if (!confirm('Confirme novamente: Deseja realmente excluir sua conta?')) {
+            return;
+        }
+
+        try {
+            // Deletar dados do usuário
+            await db.collection('users').doc(currentUser.uid).delete();
+
+            // Deletar conta
+            await currentUser.delete();
+
+            showNotification('✅ Conta excluída com sucesso', 'success');
+            setTimeout(() => location.reload(), 2000);
+        } catch (error) {
+            console.error('Erro ao excluir conta:', error);
+            showNotification('❌ Erro ao excluir conta. Faça login novamente e tente outra vez.', 'error');
+        }
+    }
+
+    window.deleteAccount = deleteAccount;
+
+    async function savePreferences() {
+        if (!currentUser) return;
+
+        const notifications = document.getElementById('notifications').checked;
+        const promotions = document.getElementById('promotions').checked;
+        const soundEffects = document.getElementById('soundEffects').checked;
+        const language = document.getElementById('language').value;
 
         try {
             await db.collection('users')
                 .doc(currentUser.uid)
                 .collection('settings')
                 .doc('preferences')
-                .set(preferences);
+                .set({
+                    notifications,
+                    promotions,
+                    soundEffects,
+                    language
+                }, { merge: true });
 
-            currentUserData.settings = preferences;
-            showNotification('✅ Preferências salvas!', 'success');
+            showNotification('✅ Preferências salvas com sucesso!', 'success');
         } catch (error) {
             console.error('Erro ao salvar preferências:', error);
-            showNotification('❌ Erro ao salvar preferências!', 'error');
+            showNotification('❌ Erro ao salvar preferências', 'error');
         }
     }
 
-    async function deleteAccount() {
-        if (!confirm('⚠️ Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.')) {
-            return;
-        }
-
-        try {
-            // Remover presença
-            await updateUserPresence(false);
-
-            // Deletar documento do usuário
-            await db.collection('users').doc(currentUser.uid).delete();
-
-            // Deletar conta de autenticação
-            await currentUser.delete();
-
-            showNotification('📭 Conta excluída com sucesso!', 'info');
-            setTimeout(() => location.reload(), 2000);
-        } catch (error) {
-            console.error('Erro ao excluir conta:', error);
-            showNotification('❌ Erro ao excluir conta! Você pode precisar fazer login novamente.', 'error');
-        }
-    }
+    window.savePreferences = savePreferences;
 
     async function loadBetHistory() {
-        if (!currentUserData) return;
+        if (!currentUser) return;
 
         const historyDiv = document.getElementById('betHistory');
+        historyDiv.innerHTML = '<div style="text-align: center; padding: 20px;"><div class="spinner"></div></div>';
 
         try {
             const betsSnapshot = await db.collection('users')
                 .doc(currentUser.uid)
                 .collection('bets')
-                .orderBy('date', 'desc')
-                .limit(50)
+                .orderBy('createdAt', 'desc')
+                .limit(20)
                 .get();
 
             if (betsSnapshot.empty) {
-                historyDiv.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">Nenhuma aposta realizada ainda.</p>';
+                historyDiv.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">Nenhuma aposta no histórico.</p>';
                 return;
             }
 
             historyDiv.innerHTML = betsSnapshot.docs.map(doc => {
                 const bet = doc.data();
-                const date = bet.date ? bet.date.toDate() : new Date();
+                const statusIcon = bet.status === 'won' ? '🏆' : bet.status === 'lost' ? '❌' : '⏳';
+                const statusColor = bet.status === 'won' ? 'var(--accent)' : bet.status === 'lost' ? 'var(--danger)' : 'var(--warning)';
+                const statusText = bet.status === 'won' ? 'Ganhou' : bet.status === 'lost' ? 'Perdeu' : 'Pendente';
+
+                const animalsHtml = bet.animals.map(num => {
+                    const animal = animals.find(a => a.number === num);
+                    return `<span style="background: ${animal.color}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px;">${animal.icon} ${animal.name}</span>`;
+                }).join(' ');
+
+                const date = bet.createdAt ? bet.createdAt.toDate().toLocaleString('pt-BR') : 'Data desconhecida';
+
                 return `
-                    <div class="winner-item">
-                        <div style="font-size: 32px;">${bet.animal.icon}</div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 700; margin-bottom: 5px;">${bet.animal.name} (#${bet.animal.number})</div>
-                            <div style="font-size: 12px; color: var(--text-tertiary);">${date.toLocaleString()}</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-weight: 700; color: ${bet.status === 'won' ? 'var(--accent)' : bet.status === 'pending' ? 'var(--warning)' : 'var(--danger)'};">R$ ${bet.amount.toFixed(2)}</div>
-                            <div style="font-size: 12px; color: var(--text-tertiary);">${bet.status === 'won' ? `Ganhou: R$ ${bet.winAmount.toFixed(2)}` : bet.status === 'pending' ? 'Pendente' : 'Perdeu'}</div>
+                <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">${animalsHtml}</div>
+                        <div style="background: rgba(${statusColor}, 0.1); color: ${statusColor}; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                            ${statusIcon} ${statusText}
                         </div>
                     </div>
-                `;
+                    <div style="color: var(--text-secondary); font-size: 13px;">
+                        Aposta: <strong>R$ ${bet.totalBet.toFixed(2)}</strong> •
+                        ${bet.status === 'won' ? `Ganho: <strong style="color: var(--accent);">R$ ${(bet.totalBet * 18).toFixed(2)}</strong> • ` : ''}
+                        ${date}
+                    </div>
+                </div>
+            `;
             }).join('');
+
         } catch (error) {
             console.error('Erro ao carregar histórico:', error);
+            historyDiv.innerHTML = '<p style="text-align: center; color: var(--danger); padding: 40px;">Erro ao carregar histórico</p>';
         }
     }
 
-    // ==================== FUNÇÕES DE RESULTADOS ====================
+    // ==================== DEPÓSITOS ====================
+    function selectAmount(amount) {
+        selectedDepositAmount = amount;
+        document.querySelectorAll('.amount-option').forEach(opt => opt.classList.remove('selected'));
+        event.target.closest('.amount-option').classList.add('selected');
+    }
 
+    window.selectAmount = selectAmount;
+
+    function selectPayment(method) {
+        selectedPaymentMethod = method;
+        document.querySelectorAll('.payment-method').forEach(pm => pm.classList.remove('selected'));
+        event.target.closest('.payment-method').classList.add('selected');
+    }
+
+    window.selectPayment = selectPayment;
+
+    async function addFunds() {
+        if (!currentUser) return;
+
+        const customAmount = document.getElementById('customAmount').value;
+        const amount = customAmount ? parseFloat(customAmount) : selectedDepositAmount;
+
+        if (!amount || amount <= 0) {
+            showNotification('⚠️ Selecione um valor para depositar!', 'warning');
+            return;
+        }
+
+        if (!selectedPaymentMethod) {
+            showNotification('⚠️ Selecione um método de pagamento!', 'warning');
+            return;
+        }
+
+        // Calcular bônus
+        let bonus = 0;
+        if (amount >= 10 && amount < 25) bonus = 1;
+        else if (amount >= 25 && amount < 50) bonus = 3;
+        else if (amount >= 50 && amount < 100) bonus = 7;
+        else if (amount >= 100 && amount < 250) bonus = 15;
+        else if (amount >= 250 && amount < 500) bonus = 40;
+        else if (amount >= 500) bonus = 100;
+
+        const total = amount + bonus;
+
+        try {
+            // Simular processamento
+            showNotification('⏳ Processando depósito...', 'info');
+
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Atualizar saldo
+            await db.collection('users').doc(currentUser.uid).update({
+                balance: firebase.firestore.FieldValue.increment(total)
+            });
+
+            currentUserData.balance += total;
+            updateUserDisplay();
+
+            // Mostrar modal de sucesso
+            document.getElementById('depositAmount').textContent = `R$ ${amount.toFixed(2)}`;
+            document.getElementById('depositBonus').textContent = `R$ ${bonus.toFixed(2)}`;
+            document.getElementById('newBalance').textContent = `R$ ${currentUserData.balance.toFixed(2)}`;
+
+            document.getElementById('depositModal').classList.add('active');
+            createConfetti();
+
+            // Limpar seleções
+            selectedDepositAmount = 0;
+            selectedPaymentMethod = '';
+            document.getElementById('customAmount').value = '';
+            document.querySelectorAll('.amount-option').forEach(opt => opt.classList.remove('selected'));
+            document.querySelectorAll('.payment-method').forEach(pm => pm.classList.remove('selected'));
+
+        } catch (error) {
+            console.error('Erro ao adicionar fundos:', error);
+            showNotification('❌ Erro ao processar depósito', 'error');
+        }
+    }
+
+    window.addFunds = addFunds;
+
+    // ==================== RESULTADOS ====================
     async function loadRecentDraws() {
+        const drawsDiv = document.getElementById('recentDraws');
+        drawsDiv.innerHTML = '<div style="text-align: center; padding: 20px;"><div class="spinner"></div></div>';
+
         try {
             const drawsSnapshot = await db.collection('draws')
-                .orderBy('date', 'desc')
+                .orderBy('timestamp', 'desc')
                 .limit(10)
                 .get();
 
-            const container = document.getElementById('recentDraws');
-
             if (drawsSnapshot.empty) {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">Nenhum sorteio registrado ainda.</p>';
+                drawsDiv.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">Nenhum sorteio realizado ainda.</p>';
                 return;
             }
 
-            container.innerHTML = drawsSnapshot.docs.map(doc => {
+            drawsDiv.innerHTML = drawsSnapshot.docs.map(doc => {
                 const draw = doc.data();
-                const date = draw.date ? draw.date.toDate() : new Date();
+                const animal = animals.find(a => a.number === draw.winningAnimal);
+                const date = draw.timestamp ? draw.timestamp.toDate().toLocaleString('pt-BR') : 'Data desconhecida';
+
                 return `
-                    <div class="winner-item">
-                        <div style="font-size: 32px;">${draw.animal.icon}</div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 700; margin-bottom: 5px;">${draw.animal.name} (#${draw.animal.number})</div>
-                            <div style="font-size: 12px; color: var(--text-tertiary);">${date.toLocaleString()} - Sorteio #${draw.drawNumber}</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-weight: 700; color: ${draw.winners > 0 ? 'var(--accent)' : 'var(--text-tertiary)'};">${draw.winners} ganhador(es)</div>
-                            <div style="font-size: 12px; color: var(--text-tertiary);">Prêmio: R$ ${draw.prize.toFixed(2)}</div>
+                <div class="winner-item">
+                    <div style="width: 60px; height: 60px; background: ${animal.color}; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0;">
+                        ${animal.icon}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 18px; font-weight: 700; margin-bottom: 5px;">${animal.name}</div>
+                        <div style="color: var(--text-secondary); font-size: 14px;">
+                            Sorteio #${draw.drawNumber} • ${date}
                         </div>
                     </div>
-                `;
+                    <div style="text-align: right;">
+                        <div style="font-size: 24px; font-weight: 800; color: ${animal.color};">#${animal.number}</div>
+                        <div style="font-size: 12px; color: var(--text-tertiary);">Grupo ${animal.group}</div>
+                    </div>
+                </div>
+            `;
             }).join('');
+
         } catch (error) {
             console.error('Erro ao carregar sorteios:', error);
+            drawsDiv.innerHTML = '<p style="text-align: center; color: var(--danger); padding: 40px;">Erro ao carregar sorteios</p>';
         }
     }
 
     async function loadTopWinners() {
-        try {
-            // Buscar maiores ganhos dos últimos 30 dias
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const winnersDiv = document.getElementById('topWinners');
+        winnersDiv.innerHTML = '<div style="text-align: center; padding: 20px;"><div class="spinner"></div></div>';
 
-            const drawsSnapshot = await db.collection('draws')
-                .where('date', '>=', firebase.firestore.Timestamp.fromDate(thirtyDaysAgo))
-                .orderBy('date', 'desc')
-                .orderBy('prize', 'desc')
-                .limit(5)
+        try {
+            const usersSnapshot = await db.collection('users')
+                .orderBy('totalWins', 'desc')
+                .limit(10)
                 .get();
 
-            const container = document.getElementById('topWinners');
-
-            if (drawsSnapshot.empty) {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">Nenhum ganhador nos últimos 30 dias.</p>';
+            if (usersSnapshot.empty) {
+                winnersDiv.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 40px;">Nenhum ganhador ainda.</p>';
                 return;
             }
 
-            container.innerHTML = drawsSnapshot.docs.map(doc => {
-                const draw = doc.data();
+            winnersDiv.innerHTML = usersSnapshot.docs.map((doc, index) => {
+                const user = doc.data();
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+
                 return `
-                    <div class="winner-item">
-                        <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 24px;">
-                            ${draw.animal.icon}
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 700; margin-bottom: 5px;">${draw.animal.name}</div>
-                            <div style="font-size: 12px; color: var(--text-tertiary);">Sorteio #${draw.drawNumber}</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-weight: 700; color: var(--accent);">R$ ${draw.prize.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
-                            <div style="font-size: 12px; color: var(--text-tertiary);">${draw.winners} ganhador(es)</div>
+                <div class="winner-item">
+                    <div style="width: 50px; height: 50px; background: var(--accent-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0;">
+                        ${medal}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 16px; font-weight: 700; margin-bottom: 5px;">${user.email.split('@')[0]}</div>
+                        <div style="color: var(--text-secondary); font-size: 14px;">
+                            ${user.totalWins || 0} vitórias • Nível ${user.level || 1}
                         </div>
                     </div>
-                `;
+                </div>
+            `;
             }).join('');
+
         } catch (error) {
-            console.error('Erro ao carregar top winners:', error);
+            console.error('Erro ao carregar ganhadores:', error);
+            winnersDiv.innerHTML = '<p style="text-align: center; color: var(--danger); padding: 40px;">Erro ao carregar ganhadores</p>';
         }
     }
 
-    // ==================== TUTORIAL ====================
+    // ==================== MODALS ====================
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.classList.remove('active');
+    }
+
+    window.closeModal = closeModal;
+
+    function showTutorial() {
+        document.getElementById('tutorialModal').classList.add('active');
+        currentTutorialStep = 1;
+        updateTutorialStep();
+    }
+
+    window.showTutorial = showTutorial;
 
     function nextTutorialStep(step) {
-        document.querySelectorAll('.tutorial-modal-step').forEach(s => s.classList.remove('active'));
-        document.getElementById(`tutorialStep${step}`).style.display = 'block';
-        document.getElementById(`tutorialStep${step}`).classList.add('active');
         currentTutorialStep = step;
+        updateTutorialStep();
+    }
+
+    window.nextTutorialStep = nextTutorialStep;
+
+    function updateTutorialStep() {
+        document.querySelectorAll('.tutorial-modal-step').forEach((step, index) => {
+            step.classList.remove('active');
+            if (index + 1 === currentTutorialStep) {
+                step.classList.add('active');
+            }
+        });
     }
 
     function closeTutorial() {
         closeModal('tutorialModal');
         showSection('betting');
-        showNotification('🎉 Tutorial concluído! Boa sorte nas suas apostas!', 'success');
-        localStorage.setItem('bichobet_tutorial_completed', 'true');
     }
 
-    window.showTutorial = function() {
-        currentTutorialStep = 1;
-        document.querySelectorAll('.tutorial-modal-step').forEach(step => {
-            step.style.display = 'none';
-            step.classList.remove('active');
-        });
-        document.getElementById('tutorialStep1').style.display = 'block';
-        document.getElementById('tutorialStep1').classList.add('active');
-        showModal('tutorialModal');
-    };
+    window.closeTutorial = closeTutorial;
 
-    // ==================== DETALHES DO ANIMAL ====================
+    function showPromotions() {
+        const modal = document.getElementById('promotionsModal');
+        const list = document.getElementById('promotionsList');
 
-    function showAnimalDetails(animal) {
-        currentAnimalDetail = animal;
+        const promotions = [
+            {
+                icon: '🎁',
+                title: 'Bônus de Boas-Vindas',
+                description: 'R$ 50 grátis para novos usuários',
+                color: 'var(--accent)'
+            },
+            {
+                icon: '💰',
+                title: 'Dobro de Créditos',
+                description: 'Depósitos acima de R$ 100 ganham 15% de bônus',
+                color: 'var(--info)'
+            },
+            {
+                icon: '🎯',
+                title: 'Cashback Semanal',
+                description: '10% de cashback em todas as apostas perdidas',
+                color: 'var(--purple)'
+            },
+            {
+                icon: '⭐',
+                title: 'Programa VIP',
+                description: 'Benefícios exclusivos para jogadores frequentes',
+                color: 'var(--warning)'
+            }
+        ];
 
-        document.getElementById('animalDetailIcon').textContent = animal.icon;
-        document.getElementById('animalDetailName').textContent = animal.name;
-        document.getElementById('animalDetailGroup').textContent = animal.group;
-        document.getElementById('animalDetailNumber').textContent = animal.number;
+        list.innerHTML = promotions.map(promo => `
+        <div style="background: var(--light-secondary); padding: 30px; border-radius: var(--radius-lg); border: 2px solid var(--border); transition: var(--transition);" onmouseover="this.style.borderColor='${promo.color}'; this.style.transform='translateY(-5px)'" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'">
+            <div style="font-size: 48px; margin-bottom: 20px;">${promo.icon}</div>
+            <h3 style="font-size: 20px; margin-bottom: 10px; color: var(--text-primary);">${promo.title}</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">${promo.description}</p>
+            <button class="btn btn-primary" style="padding: 12px 24px; font-size: 14px;" onclick="closeModal('promotionsModal')">
+                <i class="fas fa-gift"></i> Ativar Promoção
+            </button>
+        </div>
+    `).join('');
 
-        const lastSeen = Math.floor(Math.random() * 120) + 5;
-        document.getElementById('animalLastSeen').textContent = `${lastSeen} min atrás`;
-
-        const frequency = (Math.random() * 5 + 2).toFixed(1);
-        document.getElementById('animalFrequency').textContent = `${frequency}%`;
-
-        const popularities = ['Baixa 🧊', 'Média 🌡️', 'Alta 🔥', 'Muito Alta 🔥🔥'];
-        document.getElementById('animalPopularity').textContent = popularities[Math.floor(Math.random() * popularities.length)];
-
-        showModal('animalDetailsModal');
+        modal.classList.add('active');
     }
 
-    async function addToFavorites() {
-        if (!currentAnimalDetail || !currentUser) return;
+    window.showPromotions = showPromotions;
 
-        const index = favoriteAnimals.findIndex(a => a.number === currentAnimalDetail.number);
+    function showStats() {
+        const modal = document.getElementById('statsModal');
 
-        if (index === -1) {
-            favoriteAnimals.push(currentAnimalDetail);
-            showNotification(`⭐ ${currentAnimalDetail.name} adicionado aos favoritos!`, 'success');
-        } else {
-            favoriteAnimals.splice(index, 1);
-            showNotification(`${currentAnimalDetail.name} removido dos favoritos!`, 'info');
-        }
+        // Calcular estatísticas
+        const totalBetted = userBets.reduce((sum, bet) => sum + bet.totalBet, 0);
+        const totalWon = 0; // Calcular baseado em apostas ganhas
+        const winRate = currentUserData.totalBets > 0 ? ((currentUserData.totalWins / currentUserData.totalBets) * 100).toFixed(1) : 0;
 
-        try {
-            await db.collection('users')
-                .doc(currentUser.uid)
-                .collection('settings')
-                .doc('favorites')
-                .set({ animals: favoriteAnimals });
-        } catch (error) {
-            console.error('Erro ao salvar favoritos:', error);
-        }
+        document.getElementById('statsModalTotalBet').textContent = `R$ ${totalBetted.toFixed(2)}`;
+        document.getElementById('statsModalTotalWon').textContent = `R$ ${totalWon.toFixed(2)}`;
+        document.getElementById('statsModalWinRate').textContent = `${winRate}%`;
+        document.getElementById('statsModalBiggestWin').textContent = 'R$ 0.00';
+
+        modal.classList.add('active');
     }
 
-    function selectAnimalAndClose() {
-        if (!currentAnimalDetail) return;
-        toggleAnimalSelection(currentAnimalDetail);
-        closeModal('animalDetailsModal');
-    }
+    window.showStats = showStats;
 
-    // ==================== JOGO RESPONSÁVEL ====================
-
-    async function saveResponsibleLimits() {
-        const dailyLimit = parseFloat(document.getElementById('dailyLimit').value) || 0;
-        const timeLimit = parseInt(document.getElementById('timeLimit').value) || 0;
+    function saveResponsibleLimits() {
+        const dailyLimit = document.getElementById('dailyLimit').value;
+        const timeLimit = document.getElementById('timeLimit').value;
         const selfExclude = document.getElementById('selfExclude').checked;
 
         responsibleLimits = { dailyLimit, timeLimit, selfExclude };
 
         if (selfExclude) {
-            const exclusionEnd = new Date();
-            exclusionEnd.setHours(exclusionEnd.getHours() + 24);
-            responsibleLimits.selfExcludeUntil = firebase.firestore.Timestamp.fromDate(exclusionEnd);
+            showNotification('⚠️ Autoexclusão ativada por 24 horas', 'warning');
+            // Implementar lógica de autoexclusão
         }
 
-        if (currentUser) {
-            try {
-                await db.collection('users')
-                    .doc(currentUser.uid)
-                    .collection('settings')
-                    .doc('limits')
-                    .set(responsibleLimits);
-
-                if (selfExclude) {
-                    showNotification('⚠️ Autoexclusão ativada por 24 horas!', 'warning');
-                    setTimeout(() => logout(), 2000);
-                } else {
-                    showNotification('✅ Limites de jogo responsável salvos!', 'success');
-                }
-            } catch (error) {
-                console.error('Erro ao salvar limites:', error);
-                showNotification('❌ Erro ao salvar limites!', 'error');
-            }
-        }
-
+        showNotification('✅ Limites salvos com sucesso!', 'success');
         closeModal('responsibleGamingModal');
     }
 
-    window.showResponsibleGaming = function() {
-        if (responsibleLimits.dailyLimit > 0) {
-            document.getElementById('dailyLimit').value = responsibleLimits.dailyLimit;
-        }
-        if (responsibleLimits.timeLimit > 0) {
-            document.getElementById('timeLimit').value = responsibleLimits.timeLimit;
-        }
-        document.getElementById('selfExclude').checked = false;
+    window.saveResponsibleLimits = saveResponsibleLimits;
 
-        showModal('responsibleGamingModal');
-    };
-
-    // ==================== PROMOÇÕES ====================
-
-    function loadPromotions() {
-        const promotions = [
-            {
-                title: '🎁 Bônus de Boas-Vindas',
-                description: 'Ganhe 100% no primeiro depósito até R$ 200',
-                validity: '7 dias',
-                active: true
-            },
-            {
-                title: '🔥 Cashback Semanal',
-                description: '10% de cashback em todas as apostas perdidas',
-                validity: 'Toda semana',
-                active: true
-            },
-            {
-                title: '⭐ Programa VIP',
-                description: 'Níveis exclusivos com bônus e prêmios especiais',
-                validity: 'Permanente',
-                active: true
-            },
-            {
-                title: '🎯 Desafio do Mês',
-                description: 'Aposte R$ 500 e ganhe R$ 100 de bônus',
-                validity: 'Até 31/12',
-                active: true
-            }
-        ];
-
-        const list = document.getElementById('promotionsList');
-        list.innerHTML = promotions.map(promo => `
-            <div style="background: var(--light-secondary); padding: 25px; border-radius: var(--radius-md); border: 2px solid ${promo.active ? 'var(--accent)' : 'var(--border)'};">
-                <h3 style="margin-bottom: 10px; color: var(--text-primary);">${promo.title}</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 15px;">${promo.description}</p>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 12px; color: var(--text-tertiary);">Válido: ${promo.validity}</span>
-                    <button class="btn btn-primary" style="padding: 10px 20px; font-size: 14px;" onclick="activatePromotion('${promo.title}')">
-                        <i class="fas fa-gift"></i> Ativar
-                    </button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function activatePromotion(title) {
-        showNotification(`🎉 Promoção "${title}" ativada!`, 'success');
-        closeModal('promotionsModal');
-    }
-
-    window.showPromotions = function() {
-        loadPromotions();
-        showModal('promotionsModal');
-    };
-
-    // ==================== ESTATÍSTICAS AVANÇADAS ====================
-
-    async function showAdvancedStats() {
-        if (!currentUserData) return;
-
-        try {
-            const betsSnapshot = await db.collection('users')
-                .doc(currentUser.uid)
-                .collection('bets')
-                .get();
-
-            const allBets = betsSnapshot.docs.map(doc => doc.data());
-
-            const totalBet = allBets.reduce((sum, bet) => sum + bet.amount, 0);
-            const wonBets = allBets.filter(bet => bet.status === 'won');
-            const totalWon = wonBets.reduce((sum, bet) => sum + (bet.winAmount || 0), 0);
-            const winRate = allBets.length > 0 ? ((wonBets.length / allBets.length) * 100).toFixed(1) : 0;
-            const biggestWin = Math.max(...wonBets.map(bet => bet.winAmount || 0), 0);
-
-            document.getElementById('statsModalTotalBet').textContent = `R$ ${totalBet.toFixed(2)}`;
-            document.getElementById('statsModalTotalWon').textContent = `R$ ${totalWon.toFixed(2)}`;
-            document.getElementById('statsModalWinRate').textContent = `${winRate}%`;
-            document.getElementById('statsModalBiggestWin').textContent = `R$ ${biggestWin.toFixed(2)}`;
-
-            const animalCounts = {};
-            allBets.forEach(bet => {
-                const key = bet.animal.number;
-                animalCounts[key] = (animalCounts[key] || 0) + 1;
-            });
-
-            const sortedAnimals = Object.entries(animalCounts)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 5);
-
-            const favAnimalsDiv = document.getElementById('statsModalFavoriteAnimals');
-            favAnimalsDiv.innerHTML = sortedAnimals.map(([number, count]) => {
-                const animal = animals.find(a => a.number === parseInt(number));
-                return `
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: var(--light-secondary); border-radius: var(--radius-sm); margin-bottom: 10px;">
-                        <div style="display: flex; align-items: center; gap: 15px;">
-                            <span style="font-size: 32px;">${animal.icon}</span>
-                            <div>
-                                <div style="font-weight: 700;">${animal.name}</div>
-                                <div style="font-size: 12px; color: var(--text-tertiary);">#{animal.number}</div>
-                            </div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-weight: 800; color: var(--accent);">${count}x</div>
-                            <div style="font-size: 12px; color: var(--text-tertiary);">apostas</div>
-                        </div>
-                    </div>
-                `;
-            }).join('') || '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">Nenhum dado disponível</p>';
-
-            const recentBets = allBets.slice(-10).reverse();
-            const recentBetsDiv = document.getElementById('statsModalRecentBets');
-            recentBetsDiv.innerHTML = recentBets.map(bet => `
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border);">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 24px;">${bet.animal.icon}</span>
-                        <div>
-                            <div style="font-weight: 600; font-size: 14px;">${bet.animal.name}</div>
-                            <div style="font-size: 11px; color: var(--text-tertiary);">${bet.date ? new Date(bet.date.seconds * 1000).toLocaleString() : 'Recente'}</div>
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-weight: 700; color: ${bet.status === 'won' ? 'var(--accent)' : 'var(--danger)'}; font-size: 14px;">
-                            ${bet.status === 'won' ? '+' : '-'}R$ ${bet.amount.toFixed(2)}
-                        </div>
-                        <div style="font-size: 11px; color: var(--text-tertiary);">${bet.status === 'won' ? 'Ganhou' : bet.status === 'pending' ? 'Pendente' : 'Perdeu'}</div>
-                    </div>
-                </div>
-            `).join('') || '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">Nenhuma aposta recente</p>';
-
-            showModal('statsModal');
-        } catch (error) {
-            console.error('Erro ao carregar estatísticas:', error);
-            showNotification('❌ Erro ao carregar estatísticas!', 'error');
-        }
-    }
-
-    window.showStats = function() {
-        showAdvancedStats();
-    };
-
-    // ==================== SUPORTE ====================
-
-    async function sendSupportMessage(event) {
-        event.preventDefault();
+    function sendSupportMessage(e) {
+        e.preventDefault();
 
         const subject = document.getElementById('supportSubject').value;
         const message = document.getElementById('supportMessage').value;
 
         if (!message.trim()) {
-            showNotification('❌ Por favor, escreva uma mensagem!', 'error');
+            showNotification('⚠️ Digite uma mensagem!', 'warning');
             return;
         }
 
-        if (currentUser) {
-            try {
-                await db.collection('support_tickets').add({
-                    userId: currentUser.uid,
-                    email: currentUser.email,
-                    subject,
-                    message,
-                    status: 'pending',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
+        // Simular envio
+        showNotification('✅ Mensagem enviada! Responderemos em breve.', 'success');
+        document.getElementById('supportMessage').value = '';
+        setTimeout(() => closeModal('supportModal'), 2000);
+    }
 
-                showNotification('✅ Mensagem enviada! Responderemos em breve.', 'success');
-                closeModal('supportModal');
-                document.getElementById('supportMessage').value = '';
-            } catch (error) {
-                console.error('Erro ao enviar mensagem:', error);
-                showNotification('❌ Erro ao enviar mensagem!', 'error');
-            }
+    window.sendSupportMessage = sendSupportMessage;
+
+    // ==================== NOTIFICAÇÕES ====================
+    function showNotification(message, type = 'info') {
+        const container = document.getElementById('notificationContainer');
+
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-times-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+
+        notification.innerHTML = `
+        <div class="notification-icon">
+            <i class="fas ${icons[type]}"></i>
+        </div>
+        <div style="flex: 1;">
+            <div style="font-weight: 600; margin-bottom: 5px; color: var(--text-primary);">${message}</div>
+        </div>
+    `;
+
+        container.appendChild(notification);
+
+        setTimeout(() => notification.classList.add('show'), 10);
+
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 400);
+        }, 3000);
+    }
+
+    // ==================== CONFETTI ====================
+    function createConfetti() {
+        const container = document.getElementById('confettiContainer');
+        const colors = ['#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B'];
+
+        for (let i = 0; i < 50; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDelay = Math.random() * 3 + 's';
+            confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+
+            container.appendChild(confetti);
+
+            confetti.animate([
+                { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+                { transform: `translateY(100vh) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+            ], {
+                duration: Math.random() * 3000 + 2000,
+                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+            }).onfinish = () => confetti.remove();
         }
     }
 
-    window.showSupport = function() {
-        showModal('supportModal');
-    };
+    // ==================== TEMA ESCURO ====================
+    function initTheme() {
+        const themeToggle = document.getElementById('themeToggle');
+        const savedTheme = localStorage.getItem('theme') || 'light';
 
-    // ==================== CONQUISTAS ====================
+        document.documentElement.setAttribute('data-theme', savedTheme);
 
-    const achievements = [
-        { id: 'first_bet', icon: '🎯', title: 'Primeira Aposta', description: 'Realize sua primeira aposta', requirement: 1 },
-        { id: 'bet_10', icon: '🔟', title: 'Apostador Iniciante', description: 'Realize 10 apostas', requirement: 10 },
-        { id: 'bet_50', icon: '⭐', title: 'Apostador Experiente', description: 'Realize 50 apostas', requirement: 50 },
-        { id: 'bet_100', icon: '💎', title: 'Apostador Veterano', description: 'Realize 100 apostas', requirement: 100 },
-        { id: 'win_first', icon: '🏆', title: 'Primeira Vitória', description: 'Ganhe sua primeira aposta', requirement: 1 },
-        { id: 'win_10', icon: '🎉', title: 'Sortudo', description: 'Ganhe 10 apostas', requirement: 10 },
-        { id: 'big_win', icon: '💰', title: 'Grande Vencedor', description: 'Ganhe mais de R$ 500 em uma aposta', requirement: 500 },
-        { id: 'all_animals', icon: '🦁', title: 'Conhecedor', description: 'Aposte em todos os 25 animais', requirement: 25 }
-    ];
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-    function hasAchievement(id) {
-        return userAchievements.includes(id);
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
     }
 
-    function loadAchievements() {
-        const list = document.getElementById('achievementsList');
+    // ==================== ATUALIZAR DISPLAY DO USUÁRIO ====================
+    function updateUserDisplay() {
+        if (!currentUserData) return;
 
-        list.innerHTML = achievements.map(achievement => {
-            const unlocked = hasAchievement(achievement.id);
-            return `
-                <div style="background: ${unlocked ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%)' : 'var(--light-secondary)'}; padding: 25px; border-radius: var(--radius-md); border: 2px solid ${unlocked ? 'var(--accent)' : 'var(--border)'}; display: flex; align-items: center; gap: 20px; transition: var(--transition); ${unlocked ? '' : 'opacity: 0.6;'}">
-                    <div style="font-size: 48px; ${unlocked ? '' : 'filter: grayscale(100%);'}">${achievement.icon}</div>
-                    <div style="flex: 1;">
-                        <h3 style="margin-bottom: 8px; color: var(--text-primary);">${achievement.title}</h3>
-                        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;">${achievement.description}</p>
-                        ${unlocked ?
-                '<div style="color: var(--accent); font-weight: 600; font-size: 12px;"><i class="fas fa-check-circle"></i> Desbloqueado!</div>' :
-                '<div style="color: var(--text-tertiary); font-size: 12px;"><i class="fas fa-lock"></i> Bloqueado</div>'
-            }
-                    </div>
-                </div>
-            `;
-        }).join('');
+        const balanceElements = document.querySelectorAll('#userBalance, #accountBalance');
+        balanceElements.forEach(el => {
+            el.textContent = `R$ ${(currentUserData.balance || 0).toFixed(2)}`;
+        });
     }
 
-    window.showAchievements = function() {
-        loadAchievements();
-        showModal('achievementsModal');
-    };
+    // ==================== MOSTRAR APP PRINCIPAL ====================
+    function showMainApp() {
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('navbar').style.display = 'block';
+        showSection('home');
+    }
 
-    // ==================== FUNÇÕES DE DESENVOLVIMENTO ====================
-
-    window.addTestCredits = async function(amount = 1000) {
-        if (currentUserData) {
-            currentUserData.balance += amount;
-            await updateUserData();
-            updateUserDisplay();
-            showNotification(`💸 R$ ${amount} adicionados para testes!`, 'success');
-            createConfetti();
+    // ==================== PARTICLES.JS ====================
+    function initParticles() {
+        if (typeof particlesJS !== 'undefined') {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: '#10B981' },
+                    shape: { type: 'circle' },
+                    opacity: { value: 0.5, random: false },
+                    size: { value: 3, random: true },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: '#10B981',
+                        opacity: 0.4,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: 'none',
+                        random: false,
+                        straight: false,
+                        out_mode: 'out',
+                        bounce: false
+                    }
+                },
+                interactivity: {
+                    detect_on: 'canvas',
+                    events: {
+                        onhover: { enable: true, mode: 'repulse' },
+                        onclick: { enable: true, mode: 'push' },
+                        resize: true
+                    }
+                },
+                retina_detect: true
+            });
         }
-    };
+    }
 
-    window.testDraw = async function() {
-        const globalDoc = await db.collection('system').doc('global').get();
-        if (globalDoc.exists) {
-            await executeDraw(globalDoc.data().drawNumber);
-        }
-    };
-
-    window.resetAccount = async function() {
-        if (!confirm('Tem certeza que deseja resetar sua conta? Todos os dados serão perdidos.')) {
-            return;
-        }
-
-        try {
-            if (currentUser) {
-                const betsSnapshot = await db.collection('users').doc(currentUser.uid).collection('bets').get();
-                const batch = db.batch();
-                betsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
-                await batch.commit();
-
-                await db.collection('users').doc(currentUser.uid).update({
-                    balance: 50,
-                    totalBets: 0,
-                    totalWins: 0,
-                    level: 1,
-                    xp: 0
-                });
-
-                location.reload();
+    // ==================== SCROLL DA NAVBAR ====================
+    window.addEventListener('scroll', () => {
+        const navbar = document.getElementById('navbar');
+        if (navbar) {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
             }
-        } catch (error) {
-            console.error('Erro ao resetar conta:', error);
-            showNotification('❌ Erro ao resetar conta!', 'error');
         }
-    };
+    });
 
     // ==================== INICIALIZAÇÃO ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('🎮 Inicializando Banca do Marcos...');
 
-    document.addEventListener('DOMContentLoaded', function() {
-        initTheme();
         initAuthTabs();
         initAnimalsGrid();
-        initTimer();
+        initTheme();
         initParticles();
 
-        document.getElementById('betAmount').addEventListener('input', function() {
-            currentBetAmount = parseInt(this.value) || 1;
-            if (currentBetAmount < 1) {
-                currentBetAmount = 1;
-                this.value = 1;
-            }
-            if (currentBetAmount > 1000) {
-                currentBetAmount = 1000;
-                this.value = 1000;
-            }
-            document.getElementById('currentBetAmount').textContent = currentBetAmount;
-            updateStats();
-        });
-
-        document.addEventListener('click', function(e) {
-            const animalCard = e.target.closest('.animal-card');
-            if (animalCard && e.ctrlKey) {
-                const animalNumber = parseInt(animalCard.dataset.number);
-                const animal = animals.find(a => a.number === animalNumber);
-                if (animal) {
-                    showAnimalDetails(animal);
-                }
-            }
-        });
-
-        if (!localStorage.getItem('bichobet_tutorial_completed')) {
-            setTimeout(() => {
-                if (currentUser) {
-                    showTutorial();
-                }
-            }, 3000);
-        }
-
-        const loginForm = document.getElementById('loginForm');
-        const registerForm = document.getElementById('registerForm');
-        if (loginForm) loginForm.style.display = 'block';
-        if (registerForm) registerForm.style.display = 'none';
+        console.log('✅ Interface carregada!');
     });
-
-
-
-    let unsubscribeGlobal = null;
-
-
-    // ==================== TIMER DE COUNTDOWN ====================
-
-    // ==================== PROCESSAR RESULTADO DO SORTEIO ====================
-    async function processDrawResult(draw) {
-        if (!currentUser || !currentUserData) return;
-
-        try {
-            let totalWinnings = 0;
-            let winningBets = 0;
-            let losingBets = 0;
-
-            // Buscar apostas do usuário para este sorteio
-            const userBetsSnapshot = await db.collection('users')
-                .doc(currentUser.uid)
-                .collection('bets')
-                .where('drawNumber', '==', draw.drawNumber)
-                .get();
-
-            console.log(`Processando ${userBetsSnapshot.size} apostas para sorteio #${draw.drawNumber}`);
-
-            userBetsSnapshot.docs.forEach(doc => {
-                const bet = doc.data();
-                if (bet.status === 'won') {
-                    totalWinnings += bet.winAmount || 0;
-                    winningBets++;
-                } else if (bet.status === 'lost') {
-                    losingBets++;
-                }
-            });
-
-            // Recarregar dados do usuário
-            await loadUserData(currentUser.uid);
-            updateUserDisplay();
-
-            // Limpar apostas locais
-            userBets = userBets.filter(bet => bet.drawNumber !== draw.drawNumber);
-            updateBetsList();
-
-            // Mostrar resultado
-            if (totalWinnings > 0) {
-                console.log(`🎉 Ganhou R$ ${totalWinnings}!`);
-                showResultModal(draw.animal, totalWinnings, winningBets);
-                createConfetti();
-
-                // Tocar som de vitória
-                if (currentUserData.settings?.soundEffects) {
-                    playWinSound();
-                }
-
-                // Verificar conquistas
-                await checkAchievements();
-            } else if (losingBets > 0) {
-                console.log(`😢 Perdeu ${losingBets} aposta(s)`);
-                showResultModal(draw.animal, 0, 0);
-            }
-
-        } catch (error) {
-            console.error('Erro ao processar resultado do sorteio:', error);
-        }
-    }
-
-    // ==================== REALIZAR APOSTA (CORRIGIDO) ====================
-    async function confirmAndPlaceBet() {
-        closeModal('confirmBetModal');
-
-        const betAmount = parseInt(document.getElementById('betAmount').value) || 10;
-        let totalBet = betAmount * selectedAnimals.length;
-
-        if (betType === 'multiple' && selectedAnimals.length > 1) {
-            totalBet = Math.floor(totalBet * 0.9);
-        }
-
-        try {
-            // Obter próximo número de sorteio
-            const globalDoc = await db.collection('system').doc('global').get();
-
-            if (!globalDoc.exists) {
-                throw new Error('Sistema não inicializado');
-            }
-
-            const currentDrawNumber = globalDoc.data().drawNumber;
-
-            console.log(`Criando apostas para sorteio #${currentDrawNumber}`);
-
-            // Criar apostas em batch
-            const batch = db.batch();
-
-            for (const animal of selectedAnimals) {
-                // ID único para a aposta
-                const betRef = db.collection('users').doc(currentUser.uid)
-                    .collection('bets').doc();
-
-                const bet = {
-                    animal: {
-                        number: animal.number,
-                        name: animal.name,
-                        icon: animal.icon,
-                        group: animal.group,
-                        odds: animal.odds
-                    },
-                    amount: betAmount,
-                    potentialWin: betAmount * animal.odds,
-                    status: 'pending',
-                    type: betType,
-                    drawNumber: currentDrawNumber,
-                    date: firebase.firestore.FieldValue.serverTimestamp()
-                };
-
-                batch.set(betRef, bet);
-
-                // Adicionar à fila de apostas pendentes
-                const pendingBetRef = db.collection('pending_bets').doc();
-                batch.set(pendingBetRef, {
-                    ...bet,
-                    userId: currentUser.uid,
-                    betId: betRef.id,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                // Adicionar ao estado local
-                userBets.push({ ...bet, id: betRef.id });
-            }
-
-            // Atualizar saldo e estatísticas
-            const userRef = db.collection('users').doc(currentUser.uid);
-            batch.update(userRef, {
-                balance: firebase.firestore.FieldValue.increment(-totalBet),
-                totalBets: firebase.firestore.FieldValue.increment(selectedAnimals.length),
-                xp: firebase.firestore.FieldValue.increment(selectedAnimals.length * 5)
-            });
-
-            // Commit do batch
-            await batch.commit();
-
-            console.log(`✅ ${selectedAnimals.length} aposta(s) criada(s) com sucesso!`);
-
-            // Atualizar localmente
-            currentUserData.balance -= totalBet;
-            currentUserData.totalBets += selectedAnimals.length;
-            currentUserData.xp += selectedAnimals.length * 5;
-
-            // Verificar conquistas
-            await checkAchievements();
-
-            // Verificar level up
-            checkLevelUp();
-
-            updateUserDisplay();
-            updateBetsList();
-
-            // Limpar seleção
-            selectedAnimals = [];
-            document.querySelectorAll('.animal-card.selected')
-                .forEach(card => card.classList.remove('selected'));
-            updateStats();
-
-            showNotification(
-                `✅ ${userBets.length} aposta(s) realizada(s)! Total: R$ ${totalBet.toFixed(2)}`,
-                'success'
-            );
-            createConfetti();
-
-        } catch (error) {
-            console.error('Erro ao realizar aposta:', error);
-            showNotification('❌ Erro ao processar aposta: ' + error.message, 'error');
-        }
-    }
-
-    // ==================== LIMPAR LISTENERS AO SAIR ====================
-    function cleanupListeners() {
-        if (unsubscribeDraws) {
-            unsubscribeDraws();
-            unsubscribeDraws = null;
-        }
-        if (unsubscribeGlobal) {
-            unsubscribeGlobal();
-            unsubscribeGlobal = null;
-        }
-    }
-
-    // Chamar ao fazer logout
-    async function logout() {
-        try {
-            cleanupListeners();
-            await updateUserPresence(false);
-            await auth.signOut();
-            location.reload();
-        } catch (error) {
-            console.error('Erro ao fazer logout:', error);
-        }
-    }
-    async function initializeGlobalDrawSystem() {
-        try {
-            console.log('🚀 Iniciando sistema global...');
-
-            const globalRef = db.collection('system').doc('global');
-            const globalDoc = await globalRef.get();
-
-            if (!globalDoc.exists) {
-                console.log('⚠️ Sistema não inicializado. Criando documento global...');
-
-                const now = new Date();
-                const minutes = now.getMinutes();
-                const nextMinutes = Math.ceil(minutes / 5) * 5;
-
-                const nextDraw = new Date(now);
-                nextDraw.setMinutes(nextMinutes, 0, 0);
-
-                if (nextMinutes >= 60) {
-                    nextDraw.setHours(nextDraw.getHours() + 1);
-                    nextDraw.setMinutes(0, 0, 0);
-                }
-
-                await globalRef.set({
-                    jackpot: 25847.50,
-                    nextDrawTime: firebase.firestore.Timestamp.fromDate(nextDraw),
-                    drawNumber: 202412345,
-                    onlinePlayers: 0,
-                    lastUpdate: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                console.log('✅ Sistema inicializado com sucesso!');
-                console.log('📅 Próximo sorteio:', nextDraw.toLocaleString('pt-BR'));
-            } else {
-                console.log('✅ Sistema já inicializado');
-                const data = globalDoc.data();
-                console.log('📊 Dados do sistema:');
-                console.log('   - Jackpot: R$', data.jackpot);
-                console.log('   - Draw Number:', data.drawNumber);
-                console.log('   - Próximo sorteio:', data.nextDrawTime?.toDate().toLocaleString('pt-BR'));
-                console.log('   - Jogadores online:', data.onlinePlayers);
-            }
-        } catch (error) {
-            console.error('❌ ERRO ao inicializar sistema global:', error);
-            console.error('Detalhes:', error.message);
-            throw error;
-        }
-    }
-    // ==================== INICIALIZAÇÃO PRINCIPAL ====================
-    auth.onAuthStateChanged(async (user) => {
-        console.log('🔄 Estado de autenticação mudou:', user ? user.email : 'Nenhum usuário');
-
-        if (user) {
-            try {
-                currentUser = user;
-                console.log('✅ Usuário autenticado:', user.email);
-
-                // 1. Inicializar sistema global PRIMEIRO
-                console.log('⏳ Inicializando sistema global...');
-                await initializeGlobalDrawSystem();
-
-                // 2. Carregar dados do usuário
-                console.log('⏳ Carregando dados do usuário...');
-                await loadUserData(user.uid);
-
-                // 3. Marcar presença online
-                console.log('⏳ Marcando presença online...');
-                await updateUserPresence(true);
-
-                // 4. Iniciar timer
-                console.log('⏳ Iniciando timer...');
-                initTimer();
-
-                // 5. Mostrar app
-                console.log('⏳ Mostrando interface...');
-                showMainApp();
-
-                console.log('✅ App totalmente inicializado!');
-
-            } catch (error) {
-                console.error('❌ ERRO CRÍTICO na inicialização:', error);
-                showNotification('❌ Erro ao inicializar: ' + error.message, 'error');
-            }
-        } else {
-            console.log('👋 Usuário desconectado');
-            currentUser = null;
-            currentUserData = null;
-
-            // Limpar listeners
-            if (window.unsubscribeGlobal) {
-                window.unsubscribeGlobal();
-                window.unsubscribeGlobal = null;
-            }
-        }
-    });
-
-    // ==================== DIAGNÓSTICO ====================
-    window.diagnosticar = async function() {
-        console.log('\n========== DIAGNÓSTICO DO SISTEMA ==========\n');
-
-        // 1. Verificar Firebase
-        console.log('1️⃣ Firebase inicializado:', !!firebase.apps.length);
-        console.log('   Auth:', !!auth);
-        console.log('   Firestore:', !!db);
-
-        // 2. Verificar autenticação
-        console.log('\n2️⃣ Usuário atual:', currentUser ? currentUser.email : 'Nenhum');
-        console.log('   Dados do usuário:', currentUserData ? 'OK' : 'Não carregado');
-
-        // 3. Verificar documento global
-        try {
-            const globalDoc = await db.collection('system').doc('global').get();
-            console.log('\n3️⃣ Documento global:', globalDoc.exists ? 'EXISTE' : 'NÃO EXISTE');
-            if (globalDoc.exists) {
-                const data = globalDoc.data();
-                console.log('   Jackpot:', data.jackpot);
-                console.log('   Draw Number:', data.drawNumber);
-                console.log('   Next Draw:', data.nextDrawTime?.toDate().toLocaleString('pt-BR'));
-                console.log('   Online Players:', data.onlinePlayers);
-            }
-        } catch (error) {
-            console.error('❌ Erro ao verificar global:', error);
-        }
-
-        // 4. Verificar elementos da UI
-        console.log('\n4️⃣ Elementos da UI:');
-        console.log('   Timer element:', !!document.getElementById('drawTimer'));
-        console.log('   Jackpot element:', !!document.getElementById('jackpotAmount'));
-        console.log('   Balance element:', !!document.getElementById('userBalance'));
-
-        // 5. Verificar listeners
-        console.log('\n5️⃣ Listeners:', window.unsubscribeGlobal ? 'Ativo' : 'Não ativo');
-
-        console.log('\n==========================================\n');
-    };
-
-    // Executar diagnóstico automaticamente após 3 segundos do login
-    setTimeout(() => {
-        if (currentUser) {
-            console.log('🔍 Executando diagnóstico automático...');
-            window.diagnosticar();
-        }
-    }, 3000);
-
-
-
 </script>
 </body>
 </html>

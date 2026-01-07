@@ -1985,8 +1985,228 @@
                 opacity: 1;
             }
         }
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            scroll-behavior: smooth;
+        }
 
+        .message {
+            display: flex;
+            gap: 12px;
+            max-width: 100%;
+            animation: fadeIn 0.3s ease-out;
+            position: relative;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+            margin-right: auto;
+            max-width: 85%;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+            margin-left: auto;
+            max-width: 75%;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+            color: white;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #64748B 0%, #475569 100%);
+            color: white;
+        }
+
+        .message-content {
+            flex: 1;
+            padding: 16px 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            position: relative;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            min-width: 0;
+            border: 1px solid var(--border);
+        }
+
+        .message.assistant .message-content {
+            background: var(--assistant-message-bg);
+            border-bottom-left-radius: 6px;
+            color: var(--text-primary);
+        }
+
+        .message.user .message-content {
+            background: var(--accent);
+            color: white;
+            border-bottom-right-radius: 6px;
+        }
+
+        .message-text {
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        /* Ações das mensagens */
+        .message-actions {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .dark-theme .message-actions { border-top-color: rgba(255, 255, 255, 0.08); }
+        .message.user .message-actions { border-top-color: rgba(255, 255, 255, 0.2); }
+
+        .action-icon-btn.small {
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 12px;
+            background: transparent;
+            border: 1.5px solid rgba(0, 0, 0, 0.1);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 32px;
+            white-space: nowrap;
+        }
+
+        .action-icon-btn.small i { font-size: 13px; }
+
+        .action-icon-btn.small:hover {
+            background: var(--light-secondary);
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .action-icon-btn.small.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .action-icon-btn.small.active:hover {
+            background: var(--accent-light);
+            border-color: var(--accent-light);
+        }
+
+        /* Cores específicas por ícone */
+        .action-icon-btn.small:has(.fa-thumbs-up):hover,
+        .action-icon-btn.small:has(.fa-thumbs-up).active {
+            background: var(--success-color);
+            border-color: var(--success-color);
+            color: white;
+        }
+
+        .action-icon-btn.small:has(.fa-thumbs-down):hover,
+        .action-icon-btn.small:has(.fa-thumbs-down).active {
+            background: var(--error-color);
+            border-color: var(--error-color);
+            color: white;
+        }
+
+        .action-icon-btn.small:has(.fa-copy):hover {
+            background: var(--accent-secondary);
+            border-color: var(--accent-secondary);
+            color: white;
+        }
+
+        .action-icon-btn.small:has(.fa-redo):hover {
+            background: var(--warning-color);
+            border-color: var(--warning-color);
+            color: white;
+        }
+
+        /* Botão de excluir (mensagem do usuário) */
+        .message.user .action-icon-btn.delete-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        .message.user:hover .action-icon-btn.delete-btn { opacity: 1; }
+
+        .message.user .action-icon-btn.delete-btn:hover {
+            background: var(--error-color);
+            border-color: var(--error-color);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .dark-theme .message.user .action-icon-btn.delete-btn {
+            background: var(--dark-secondary);
+        }
+
+        /* Indicadores de erro/timeout */
+        .error-indicator, .timeout-indicator {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .error-indicator {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .timeout-indicator {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
+
 </head>
 <body>
 <!-- Login/Register Modal -->
@@ -2366,20 +2586,6 @@
     const registerBtn = document.getElementById('registerBtn');
     const emailLoginBtn = document.getElementById('emailLoginBtn');
     const googleLoginBtn = document.getElementById('googleLoginBtn');
-    const loginEmail = document.getElementById('loginEmail');
-    const loginPassword = document.getElementById('loginPassword');
-    const registerName = document.getElementById('registerName');
-    const registerEmail = document.getElementById('registerEmail');
-    const registerPassword = document.getElementById('registerPassword');
-    const registerConfirmPassword = document.getElementById('registerConfirmPassword');
-
-    // Error messages
-    const registerNameError = document.getElementById('registerNameError');
-    const registerEmailError = document.getElementById('registerEmailError');
-    const registerPasswordError = document.getElementById('registerPasswordError');
-    const registerConfirmPasswordError = document.getElementById('registerConfirmPasswordError');
-    const loginEmailError = document.getElementById('loginEmailError');
-    const loginPasswordError = document.getElementById('loginPasswordError');
 
     // Settings elements
     const modelSelect = document.getElementById('modelSelect');
@@ -2408,32 +2614,38 @@
     let conversationListener = null;
     let messageListener = null;
     let conversationsListener = null;
-
-    // Adicionar ao STATE (após as outras variáveis)
     let currentRequestId = null;
     let isGenerating = false;
     let currentAudioRecorder = null;
     let isRecording = false;
+    let initialLoadComplete = false;
+    let isCreatingConversation = false;
+    let aiResponseListener = null;
+    let displayedMessageIds = new Set();
+    let aiResponseListeners = new Map();
 
+    // Initialize the app
     document.addEventListener('DOMContentLoaded', initializeApp);
 
     async function initializeApp() {
         try {
-            // Check authentication - auth.onAuthStateChanged não retorna Promise, então não use await
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
                     currentUser = user;
                     loginModal.style.display = 'none';
                     await loadUserProfile();
-                    await loadConversations();
                     initializeEventListeners();
                     setupMessageInput();
                     applyTheme(userPreferences.theme);
+
+                    welcomeScreen.style.display = 'flex';
+                    messagesContainer.innerHTML = '';
+                    messagesContainer.appendChild(welcomeScreen);
+
+                    await loadConversations();
                 } else {
                     loginModal.style.display = 'flex';
                     showLoginForm();
-                    currentUser = null;
-                    currentConversationId = null;
                 }
             });
         } catch (error) {
@@ -2441,6 +2653,7 @@
             showNotification('Erro ao inicializar o aplicativo', 'error');
         }
     }
+
     // Form switching functions
     function showLoginForm() {
         loginForm.classList.add('active');
@@ -2459,18 +2672,10 @@
     }
 
     function clearErrors() {
-        // Clear login errors
-        loginEmailError.classList.remove('show');
-        loginPasswordError.classList.remove('show');
-
-        // Clear register errors
-        registerNameError.classList.remove('show');
-        registerEmailError.classList.remove('show');
-        registerPasswordError.classList.remove('show');
-        registerConfirmPasswordError.classList.remove('show');
+        const errorMessages = document.querySelectorAll('.error-message');
+        errorMessages.forEach(msg => msg.classList.remove('show'));
     }
 
-    // Helper function to validate email
     function validateEmail(email) {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);
@@ -2482,63 +2687,56 @@
 
     // Registration function
     registerBtn.addEventListener('click', async () => {
-        const name = registerName.value.trim();
-        const email = registerEmail.value.trim();
-        const password = registerPassword.value;
-        const confirmPassword = registerConfirmPassword.value;
+        const name = document.getElementById('registerName').value.trim();
+        const email = document.getElementById('registerEmail').value.trim();
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('registerConfirmPassword').value;
 
-        // Validation
         let isValid = true;
         clearErrors();
 
         if (!name) {
-            registerNameError.textContent = 'Nome é obrigatório';
-            registerNameError.classList.add('show');
+            document.getElementById('registerNameError').textContent = 'Nome é obrigatório';
+            document.getElementById('registerNameError').classList.add('show');
             isValid = false;
         }
 
         if (!email) {
-            registerEmailError.textContent = 'E-mail é obrigatório';
-            registerEmailError.classList.add('show');
+            document.getElementById('registerEmailError').textContent = 'E-mail é obrigatório';
+            document.getElementById('registerEmailError').classList.add('show');
             isValid = false;
         } else if (!validateEmail(email)) {
-            registerEmailError.textContent = 'E-mail inválido';
-            registerEmailError.classList.add('show');
+            document.getElementById('registerEmailError').textContent = 'E-mail inválido';
+            document.getElementById('registerEmailError').classList.add('show');
             isValid = false;
         }
 
         if (!password) {
-            registerPasswordError.textContent = 'Senha é obrigatória';
-            registerPasswordError.classList.add('show');
+            document.getElementById('registerPasswordError').textContent = 'Senha é obrigatória';
+            document.getElementById('registerPasswordError').classList.add('show');
             isValid = false;
         } else if (password.length < 6) {
-            registerPasswordError.textContent = 'Senha deve ter no mínimo 6 caracteres';
-            registerPasswordError.classList.add('show');
+            document.getElementById('registerPasswordError').textContent = 'Senha deve ter no mínimo 6 caracteres';
+            document.getElementById('registerPasswordError').classList.add('show');
             isValid = false;
         }
 
         if (!confirmPassword) {
-            registerConfirmPasswordError.textContent = 'Confirme sua senha';
-            registerConfirmPasswordError.classList.add('show');
+            document.getElementById('registerConfirmPasswordError').textContent = 'Confirme sua senha';
+            document.getElementById('registerConfirmPasswordError').classList.add('show');
             isValid = false;
         } else if (password !== confirmPassword) {
-            registerConfirmPasswordError.textContent = 'As senhas não coincidem';
-            registerConfirmPasswordError.classList.add('show');
+            document.getElementById('registerConfirmPasswordError').textContent = 'As senhas não coincidem';
+            document.getElementById('registerConfirmPasswordError').classList.add('show');
             isValid = false;
         }
 
         if (!isValid) return;
 
         try {
-            // Create user in Firebase Auth
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            await userCredential.user.updateProfile({ displayName: name });
 
-            // Update user profile with name
-            await userCredential.user.updateProfile({
-                displayName: name
-            });
-
-            // Create user document in Firestore
             await db.collection('users').doc(userCredential.user.uid).set({
                 uid: userCredential.user.uid,
                 name: name,
@@ -2563,18 +2761,18 @@
             switch (error.code) {
                 case 'auth/email-already-in-use':
                     errorMessage = 'Este e-mail já está em uso';
-                    registerEmailError.textContent = errorMessage;
-                    registerEmailError.classList.add('show');
+                    document.getElementById('registerEmailError').textContent = errorMessage;
+                    document.getElementById('registerEmailError').classList.add('show');
                     break;
                 case 'auth/invalid-email':
                     errorMessage = 'E-mail inválido';
-                    registerEmailError.textContent = errorMessage;
-                    registerEmailError.classList.add('show');
+                    document.getElementById('registerEmailError').textContent = errorMessage;
+                    document.getElementById('registerEmailError').classList.add('show');
                     break;
                 case 'auth/weak-password':
                     errorMessage = 'Senha muito fraca';
-                    registerPasswordError.textContent = errorMessage;
-                    registerPasswordError.classList.add('show');
+                    document.getElementById('registerPasswordError').textContent = errorMessage;
+                    document.getElementById('registerPasswordError').classList.add('show');
                     break;
                 default:
                     showNotification(errorMessage + ': ' + error.message, 'error');
@@ -2584,20 +2782,20 @@
 
     // Login Functions
     emailLoginBtn.addEventListener('click', async () => {
-        const email = loginEmail.value.trim();
-        const password = loginPassword.value;
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
 
         clearErrors();
 
         if (!email) {
-            loginEmailError.textContent = 'E-mail é obrigatório';
-            loginEmailError.classList.add('show');
+            document.getElementById('loginEmailError').textContent = 'E-mail é obrigatório';
+            document.getElementById('loginEmailError').classList.add('show');
             return;
         }
 
         if (!password) {
-            loginPasswordError.textContent = 'Senha é obrigatória';
-            loginPasswordError.classList.add('show');
+            document.getElementById('loginPasswordError').textContent = 'Senha é obrigatória';
+            document.getElementById('loginPasswordError').classList.add('show');
             return;
         }
 
@@ -2611,18 +2809,13 @@
                 case 'auth/user-not-found':
                 case 'auth/wrong-password':
                     errorMessage = 'E-mail ou senha incorretos';
-                    loginEmailError.textContent = errorMessage;
-                    loginEmailError.classList.add('show');
+                    document.getElementById('loginEmailError').textContent = errorMessage;
+                    document.getElementById('loginEmailError').classList.add('show');
                     break;
                 case 'auth/invalid-email':
                     errorMessage = 'E-mail inválido';
-                    loginEmailError.textContent = errorMessage;
-                    loginEmailError.classList.add('show');
-                    break;
-                case 'auth/user-disabled':
-                    errorMessage = 'Conta desativada';
-                    loginEmailError.textContent = errorMessage;
-                    loginEmailError.classList.add('show');
+                    document.getElementById('loginEmailError').textContent = errorMessage;
+                    document.getElementById('loginEmailError').classList.add('show');
                     break;
                 default:
                     showNotification(errorMessage + ': ' + error.message, 'error');
@@ -2637,9 +2830,7 @@
             const result = await auth.signInWithPopup(provider);
             const user = result.user;
 
-            // Check if it's a new user
             if (result.additionalUserInfo.isNewUser) {
-                // Create user document in Firestore
                 await db.collection('users').doc(user.uid).set({
                     uid: user.uid,
                     name: user.displayName,
@@ -2671,7 +2862,6 @@
             const userDoc = await db.collection('users').doc(currentUser.uid).get();
 
             if (!userDoc.exists) {
-                // Create document for new user
                 userPreferences = {
                     theme: 'light',
                     language: 'pt',
@@ -2704,20 +2894,19 @@
                 };
             }
 
-            // Update UI
             const userData = (await db.collection('users').doc(currentUser.uid).get()).data();
             const initials = getInitials(userData.name || currentUser.email);
             userAvatar.textContent = initials;
             userName.textContent = userData.name || currentUser.email.split('@')[0];
             userEmail.textContent = currentUser.email;
 
-            // Update settings
             updateSettingsUI();
         } catch (error) {
             console.error('Error loading user profile:', error);
             showNotification('Erro ao carregar perfil do usuário', 'error');
         }
     }
+
     function updateSettingsUI() {
         if (!userPreferences) return;
 
@@ -2769,26 +2958,22 @@
         }
 
         try {
-            // Delete all messages in the conversation
             const messagesSnapshot = await db.collection('conversations')
                 .doc(conversationId)
                 .collection('messages')
                 .get();
 
             const batch = db.batch();
-            messagesSnapshot.forEach(doc => {
-                batch.delete(doc.ref);
-            });
+            messagesSnapshot.forEach(doc => batch.delete(doc.ref));
             await batch.commit();
 
-            // Delete the conversation
             await db.collection('conversations').doc(conversationId).delete();
 
-            // If this was the current conversation, create a new one
             if (currentConversationId === conversationId) {
                 currentConversationId = null;
                 messagesContainer.innerHTML = '';
                 welcomeScreen.style.display = 'flex';
+                messagesContainer.appendChild(welcomeScreen);
                 currentChatTitle.textContent = 'Nova Conversa';
             }
 
@@ -2814,7 +2999,6 @@
             }
         });
 
-        // Show/hide no results message
         if (visibleCount === 0 && term !== '') {
             noResults.style.display = 'block';
             emptyConversations.style.display = 'none';
@@ -2829,224 +3013,232 @@
     }
 
     function addConversationToUI(id, conversation) {
-        const conversationItem = document.createElement('div');
-        conversationItem.className = `conversation-item ${conversation.favorite ? 'favorite' : ''}`;
-        conversationItem.dataset.id = id;
-        conversationItem.dataset.title = (conversation.title || 'Nova Conversa').toLowerCase();
+        try {
+            console.log('addConversationToUI: Adicionando conversa', id, conversation.title);
 
-        const time = conversation.updatedAt?.toDate();
-        const timeStr = time ? formatTime(time) : '';
-        const title = conversation.title || 'Nova Conversa';
+            // Verificar se já existe
+            const existingItem = document.querySelector(`.conversation-item[data-id="${id}"]`);
+            if (existingItem) {
+                console.log('addConversationToUI: Conversa já existe, removendo...');
+                existingItem.remove();
+            }
 
-        conversationItem.innerHTML = `
-        <i class="fas fa-comment"></i>
-        <div class="conversation-title" title="${title}">${title}</div>
-        <div class="conversation-actions">
-            <button class="action-icon-btn favorite-btn ${conversation.favorite ? 'active' : ''}"
-                    data-id="${id}"
-                    title="${conversation.favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
-                <i class="fas fa-star"></i>
-            </button>
-            <button class="action-icon-btn delete-btn"
-                    data-id="${id}"
-                    title="Excluir conversa">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-        <div class="conversation-time">${timeStr}</div>
-    `;
+            const conversationItem = document.createElement('div');
+            conversationItem.className = `conversation-item ${conversation.favorite ? 'favorite' : ''}`;
+            conversationItem.dataset.id = id;
+            conversationItem.dataset.title = (conversation.title || 'Nova Conversa').toLowerCase();
 
-        // Click to load conversation
-        conversationItem.addEventListener('click', (e) => {
-            if (!e.target.closest('.conversation-actions')) {
+            // Formatar tempo
+            let timeStr = '';
+            try {
+                if (conversation.updatedAt) {
+                    let time;
+                    if (conversation.updatedAt.toDate) {
+                        time = conversation.updatedAt.toDate();
+                    } else if (conversation.updatedAt._seconds) {
+                        time = new Date(conversation.updatedAt._seconds * 1000);
+                    } else {
+                        time = new Date(conversation.updatedAt);
+                    }
+                    timeStr = formatTime(time);
+                }
+            } catch (e) {
+                console.warn('addConversationToUI: Erro ao formatar tempo:', e);
+                timeStr = '';
+            }
+
+            const title = conversation.title || 'Nova Conversa';
+            const truncatedTitle = title.length > 25 ? title.substring(0, 25) + '...' : title;
+
+            conversationItem.innerHTML = `
+            <i class="fas fa-comment"></i>
+            <div class="conversation-title" title="${title}">${truncatedTitle}</div>
+            <div class="conversation-time">${timeStr}</div>
+            <div class="conversation-actions">
+                <button class="action-icon-btn favorite-btn ${conversation.favorite ? 'active' : ''}"
+                        data-id="${id}"
+                        title="${conversation.favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
+                    <i class="fas fa-star"></i>
+                </button>
+                <button class="action-icon-btn delete-btn"
+                        data-id="${id}"
+                        title="Excluir conversa">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+
+            // Adicionar evento de clique na conversa (exceto nos botões)
+            conversationItem.addEventListener('click', (e) => {
+                // Não disparar se clicou nos botões de ação
+                if (e.target.closest('.conversation-actions')) {
+                    return;
+                }
+                console.log('addConversationToUI: Clicou na conversa', id);
                 loadConversation(id);
-            }
-        });
-
-        // Favorite button
-        conversationItem.querySelector('.favorite-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleFavorite(id, !conversation.favorite);
-        });
-
-        // Delete button
-        conversationItem.querySelector('.delete-btn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            deleteConversation(id);
-        });
-
-        // Insert before empty state
-        conversationsList.insertBefore(conversationItem, conversationsList.firstChild);
-    }
-
-    async function loadConversations() {
-        try {
-            // Stop previous listener if exists
-            if (conversationsListener) {
-                conversationsListener();
-            }
-
-            conversationsListener = db.collection('conversations')
-                .where('userId', '==', currentUser.uid)
-                .orderBy('updatedAt', 'desc')
-                .onSnapshot((snapshot) => {
-                    // Clear only conversation items, not placeholders
-                    const items = conversationsList.querySelectorAll('.conversation-item');
-                    items.forEach(item => item.remove());
-
-                    if (snapshot.empty) {
-                        emptyConversations.style.display = 'flex';
-                        noResults.style.display = 'none';
-                        // Create a new conversation automatically
-                        setTimeout(() => createNewConversation(), 100);
-                    } else {
-                        emptyConversations.style.display = 'none';
-                        noResults.style.display = 'none';
-
-                        // Sort conversations: favorites first, then by updatedAt
-                        const conversations = [];
-                        snapshot.forEach(doc => {
-                            const conversation = doc.data();
-                            conversations.push({
-                                id: doc.id,
-                                ...conversation
-                            });
-                        });
-
-                        conversations.sort((a, b) => {
-                            // Favorites first
-                            if (a.favorite && !b.favorite) return -1;
-                            if (!a.favorite && b.favorite) return 1;
-
-                            // Then by date
-                            const timeA = a.updatedAt?.toDate() || new Date(0);
-                            const timeB = b.updatedAt?.toDate() || new Date(0);
-                            return timeB.getTime() - timeA.getTime();
-                        });
-
-                        // Add to UI
-                        conversations.forEach(conversation => {
-                            addConversationToUI(conversation.id, conversation);
-                        });
-
-                        // Load first conversation if none is selected
-                        if (conversations.length > 0 && !currentConversationId) {
-                            loadConversation(conversations[0].id);
-                        }
-                    }
-                }, (error) => {
-                    console.error('Error listening to conversations:', error);
-                    if (error.code === 'failed-precondition') {
-                        showNotification('Configurando banco de dados... Por favor, recarregue a página em alguns segundos.', 'warning');
-                    } else {
-                        showNotification('Erro ao carregar conversas', 'error');
-                    }
-                });
-
-        } catch (error) {
-            console.error('Error loading conversations:', error);
-            showNotification('Erro ao carregar conversas', 'error');
-        }
-    }
-
-    async function createNewConversation() {
-        try {
-            // Close mobile sidebar if open
-            sidebar.classList.remove('active');
-            sidebarOverlay.classList.remove('active');
-
-            // Create new conversation in Firestore
-            const conversationRef = await db.collection('conversations').add({
-                userId: currentUser.uid,
-                title: 'Nova Conversa',
-                model: userPreferences?.model || 'amazonia-1-standard',
-                status: 'active',
-                favorite: false,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                messageCount: 0
             });
 
-            currentConversationId = conversationRef.id;
-            messagesContainer.innerHTML = '';
-            welcomeScreen.style.display = 'flex';
-            currentChatTitle.textContent = 'Nova Conversa';
+            // Adicionar eventos dos botões
+            const favoriteBtn = conversationItem.querySelector('.favorite-btn');
+            if (favoriteBtn) {
+                favoriteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    console.log('addConversationToUI: Alternando favorito para', id);
+                    const isCurrentlyFavorite = conversation.favorite || false;
+                    toggleFavorite(id, !isCurrentlyFavorite);
+                });
+            }
 
-            // Clear any existing images
-            uploadedImages = [];
-            imagePreview.innerHTML = '';
+            const deleteBtn = conversationItem.querySelector('.delete-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    console.log('addConversationToUI: Deletando conversa', id);
+                    deleteConversation(id);
+                });
+            }
 
-            // Update UI
-            updateActiveConversation();
+            // Adicionar à lista
+            conversationsList.appendChild(conversationItem);
 
-            // Focus on input
-            messageInput.focus();
+            console.log('addConversationToUI: Conversa adicionada com sucesso:', id);
 
-            showNotification('Nova conversa criada', 'success');
-            return conversationRef.id;
         } catch (error) {
-            console.error('Error creating conversation:', error);
-            showNotification('Erro ao criar conversa', 'error');
-            return null;
+            console.error('addConversationToUI: Erro ao adicionar conversa:', id, error);
         }
     }
-
     async function loadConversation(conversationId) {
         try {
-            // Unsubscribe from previous listeners
+            console.log('loadConversation chamado para:', conversationId);
+
+            // 1. Limpar listeners anteriores
             if (messageListener) {
+                console.log('Removendo listener anterior de mensagens');
                 messageListener();
+                messageListener = null;
             }
 
+            aiResponseListeners.forEach(unsubscribe => unsubscribe());
+            aiResponseListeners.clear();
+
+            // 2. Atualizar estado
             currentConversationId = conversationId;
 
-            // Show loading state
-            messagesContainer.innerHTML = '<div class="empty-state"><div class="loading"><i class="fas fa-spinner"></i></div><p>Carregando conversa...</p></div>';
+            // IMPORTANTE: Limpar o Set APÓS carregar as mensagens históricas
+            // Vamos limpar agora, mas só vamos adicionar IDs depois de exibi-las
+            displayedMessageIds.clear();
+
+            // 3. Estado de loading
+            messagesContainer.innerHTML = `
+            <div class="empty-state">
+                <div class="loading"><i class="fas fa-spinner fa-spin"></i></div>
+                <p>Carregando conversa...</p>
+            </div>
+        `;
             welcomeScreen.style.display = 'none';
 
-            // Load conversation info
+            // 4. Carregar metadados da conversa
             const conversationDoc = await db.collection('conversations').doc(conversationId).get();
-            if (conversationDoc.exists) {
-                const conversation = conversationDoc.data();
-                currentChatTitle.textContent = conversation.title || 'Nova Conversa';
+            if (!conversationDoc.exists) {
+                console.error('Conversa não encontrada:', conversationId);
+                showNotification('Conversa não encontrada', 'error');
+                return;
             }
+            const conversation = conversationDoc.data();
+            currentChatTitle.textContent = conversation.title || 'Nova Conversa';
 
-            // Listen to messages in real-time
-            messageListener = db.collection('conversations').doc(conversationId)
+            // 5. Carregar mensagens históricas
+            const messagesQuery = db.collection('conversations')
+                .doc(conversationId)
                 .collection('messages')
-                .orderBy('timestamp', 'asc')
-                .onSnapshot((snapshot) => {
-                    messagesContainer.innerHTML = '';
+                .orderBy('timestamp', 'asc');
 
-                    if (snapshot.empty) {
-                        welcomeScreen.style.display = 'flex';
-                    } else {
-                        welcomeScreen.style.display = 'none';
-                        snapshot.forEach(doc => {
-                            const message = doc.data();
-                            addMessageToUI(message, false);
-                        });
-                        scrollToBottom();
-                    }
-                    updateActiveConversation();
-                }, (error) => {
-                    console.error('Error listening to messages:', error);
-                    showNotification('Erro ao carregar mensagens', 'error');
+            const messagesSnapshot = await messagesQuery.get();
+
+            console.log('Total de mensagens históricas encontradas:', messagesSnapshot.size);
+
+            // Limpar container
+            messagesContainer.innerHTML = '';
+
+            if (messagesSnapshot.empty) {
+                welcomeScreen.style.display = 'flex';
+                messagesContainer.appendChild(welcomeScreen);
+            } else {
+                // Primeiro: adicionar TODAS as mensagens ao DOM
+                messagesSnapshot.docs.forEach(doc => {
+                    const messageData = doc.data();
+                    const message = {
+                        id: doc.id,
+                        ...messageData,
+                        timestamp: messageData.timestamp?.toDate?.() || new Date()
+                    };
+
+                    // Adicionar ao DOM (sem animação)
+                    addMessageToUI(message, false);
                 });
 
-            // Close mobile sidebar
+                // Só agora, depois de todas exibidas, marcar como exibidas
+                messagesSnapshot.docs.forEach(doc => {
+                    displayedMessageIds.add(doc.id);
+                });
+
+                console.log('Mensagens históricas exibidas e marcadas:', displayedMessageIds.size);
+
+                // Scroll para o final
+                setTimeout(() => scrollToBottom(), 100);
+            }
+
+            // 6. Configurar listener apenas para NOVAS mensagens (futuras)
+            messageListener = messagesQuery.onSnapshot((snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === 'added') {
+                        const doc = change.doc;
+                        const messageId = doc.id;
+
+                        // Ignorar mensagens já exibidas (ou seja, as do carregamento inicial)
+                        if (displayedMessageIds.has(messageId)) {
+                            return;
+                        }
+
+                        const messageData = doc.data();
+                        const message = {
+                            id: messageId,
+                            ...messageData,
+                            timestamp: messageData.timestamp?.toDate?.() || new Date()
+                        };
+
+                        displayedMessageIds.add(messageId);
+                        addMessageToUI(message, true); // com animação
+                    }
+                });
+
+                scrollToBottom();
+            }, (error) => {
+                console.error('Error listening to messages:', error);
+                showNotification('Erro ao ouvir novas mensagens', 'error');
+            });
+
+            // 7. Atualizações finais de UI
+            updateActiveConversation();
+
             if (window.innerWidth <= 768) {
                 sidebar.classList.remove('active');
                 sidebarOverlay.classList.remove('active');
             }
 
-            messageInput.focus();
+            setTimeout(() => messageInput.focus(), 100);
+
+            console.log('loadConversation concluído com sucesso');
+
         } catch (error) {
             console.error('Error loading conversation:', error);
             showNotification('Erro ao carregar conversa', 'error');
+
+            messagesContainer.innerHTML = '';
+            welcomeScreen.style.display = 'flex';
+            messagesContainer.appendChild(welcomeScreen);
         }
     }
-
     function updateActiveConversation() {
         document.querySelectorAll('.conversation-item').forEach(item => {
             item.classList.remove('active');
@@ -3080,11 +3272,10 @@
         const files = Array.from(event.target.files);
         if (files.length === 0) return;
 
-        const maxSize = 5 * 1024 * 1024; // 5MB
+        const maxSize = 5 * 1024 * 1024;
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
         for (const file of files) {
-            // Validate file
             if (!allowedTypes.includes(file.type)) {
                 showNotification(`Tipo de arquivo não suportado: ${file.name}`, 'error');
                 continue;
@@ -3095,7 +3286,6 @@
                 continue;
             }
 
-            // Show preview immediately
             const reader = new FileReader();
             reader.onload = function(e) {
                 const previewItem = document.createElement('div');
@@ -3110,7 +3300,6 @@
 
                 imagePreview.appendChild(previewItem);
 
-                // Add remove functionality
                 previewItem.querySelector('.remove-image').addEventListener('click', function() {
                     const name = this.dataset.name;
                     uploadedImages = uploadedImages.filter(img => img.name !== name);
@@ -3120,7 +3309,6 @@
             };
             reader.readAsDataURL(file);
 
-            // Store file for upload
             uploadedImages.push({
                 name: file.name,
                 file: file,
@@ -3128,28 +3316,20 @@
             });
         }
 
-        // Reset file input
         event.target.value = '';
-
-        // Update send button state
         updateSendButtonState();
     }
 
     function formatMessageContent(content) {
         if (!content) return '';
 
-        // Convert code blocks
         let formatted = content.replace(/```(\w+)?\n([\s\S]*?)```/g,
             (match, lang, code) => `<pre><code class="language-${lang || ''}">${escapeHtml(code.trim())}</code></pre>`
         );
 
-        // Convert inline code
         formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-        // Convert URLs to links
         formatted = formatted.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
 
-        // Convert newlines to paragraphs
         const paragraphs = formatted.split('\n\n');
         return paragraphs.map(p => {
             if (p.startsWith('<pre>') || p.startsWith('<')) {
@@ -3168,30 +3348,6 @@
     function scrollToBottom() {
         requestAnimationFrame(() => {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        });
-    }
-
-    function formatTime(date) {
-        if (!date) return '';
-
-        const now = new Date();
-        const messageDate = date instanceof Date ? date : new Date(date);
-        const diffMs = now - messageDate;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-
-        if (diffMins < 1) return 'Agora';
-        if (diffMins < 60) return `${diffMins} min atrás`;
-        if (diffHours < 24) return `${diffHours}h atrás`;
-        if (diffDays < 7) return `${diffDays}d atrás`;
-
-        return messageDate.toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
         });
     }
 
@@ -3220,13 +3376,11 @@
     }
 
     function showNotification(message, type = 'info') {
-        // Remove existing notification
         const existingNotification = document.querySelector('.notification');
         if (existingNotification) {
             existingNotification.remove();
         }
 
-        // Create notification element
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
 
@@ -3242,71 +3396,15 @@
 
         document.body.appendChild(notification);
 
-        // Remove after 3 seconds
         setTimeout(() => {
             notification.style.animation = 'slideInRight 0.3s ease-out reverse';
             setTimeout(() => notification.remove(), 300);
         }, 3000);
     }
 
-    window.addEventListener('load', () => {
-        // Set initial textarea height
-        if (messageInput) {
-            messageInput.style.height = 'auto';
-            messageInput.style.height = messageInput.scrollHeight + 'px';
-        }
-    });
-
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-        if (userPreferences && userPreferences.theme === 'auto') {
-            applyTheme('auto');
-        }
-    });
-
-    function initializeOnLoad() {
-        // Set initial textarea height
-        if (messageInput) {
-            messageInput.style.height = 'auto';
-            messageInput.style.height = messageInput.scrollHeight + 'px';
-        }
-    }
-
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-        if (userPreferences && userPreferences.theme === 'auto') {
-            applyTheme('auto');
-        }
-    });
-
-    window.addEventListener('load', initializeOnLoad);
-
-    setupAudioRecorder().catch(error => {
-        console.error('Error setting up audio recorder:', error);
-    });
-    async function setupAudioRecorder() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            currentAudioRecorder = new MediaRecorder(stream);
-
-            currentAudioRecorder.ondataavailable = async (event) => {
-                if (event.data.size > 0) {
-                    await handleAudioUpload(event.data);
-                }
-            };
-
-            currentAudioRecorder.onstop = () => {
-                isRecording = false;
-                updateAudioButton();
-            };
-        } catch (error) {
-            console.error('Error setting up audio recorder:', error);
-            showNotification('Microfone não disponível. Você pode ainda fazer upload de arquivos de áudio.', 'warning');
-        }
-    }
-
     async function cancelGeneration() {
         if (currentRequestId && isGenerating) {
             try {
-                // Marcar a requisição como cancelada
                 await db.collection('ai_requests').doc(currentRequestId).update({
                     status: 'cancelled',
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -3319,11 +3417,7 @@
 
             currentRequestId = null;
             isGenerating = false;
-
-            // Remover indicador de digitação
             removeTypingIndicator();
-
-            // Atualizar UI
             updateSendButtonState();
         }
     }
@@ -3332,7 +3426,6 @@
         if (!currentConversationId) return;
 
         try {
-            // Buscar a última mensagem do usuário
             const messagesSnapshot = await db.collection('conversations')
                 .doc(currentConversationId)
                 .collection('messages')
@@ -3344,7 +3437,6 @@
             if (!messagesSnapshot.empty) {
                 const lastUserMessage = messagesSnapshot.docs[0].data();
 
-                // Remover a última resposta do assistente se existir
                 const assistantMessagesSnapshot = await db.collection('conversations')
                     .doc(currentConversationId)
                     .collection('messages')
@@ -3358,7 +3450,6 @@
                     await lastAssistantMessage.ref.delete();
                 }
 
-                // Reenviar a mensagem do usuário
                 await sendMessageFromHistory(lastUserMessage);
             }
         } catch (error) {
@@ -3367,55 +3458,52 @@
         }
     }
 
-
     function addMessageActions(messageDiv, message) {
         if (message.role === 'assistant') {
             const actionsDiv = document.createElement('div');
             actionsDiv.className = 'message-actions';
 
             actionsDiv.innerHTML = `
-            <button class="action-icon-btn small ${message.feedback === 'like' ? 'active' : ''}"
-                    onclick="handleFeedback('${message.id}', 'like')"
-                    title="Gostei da resposta">
-                <i class="fas fa-thumbs-up"></i>
-                <span>Gostei</span>
-            </button>
-            <button class="action-icon-btn small ${message.feedback === 'dislike' ? 'active' : ''}"
-                    onclick="handleFeedback('${message.id}', 'dislike')"
-                    title="Não gostei da resposta">
-                <i class="fas fa-thumbs-down"></i>
-                <span>Não gostei</span>
-            </button>
-            <button class="action-icon-btn small"
-                    onclick="regenerateLastMessage()"
-                    title="Gerar nova resposta">
-                <i class="fas fa-redo"></i>
-                <span>Gerar novamente</span>
-            </button>
-            <button class="action-icon-btn small"
-                    onclick="copyToClipboard(\`${message.content.replace(/`/g, '\\`')}\`)"
-                    title="Copiar resposta">
-                <i class="fas fa-copy"></i>
-                <span>Copiar</span>
-            </button>
-        `;
+      <button class="action-icon-btn small ${message.feedback === 'like' ? 'active' : ''}"
+              onclick="handleFeedback('${message.id}', 'like')"
+              title="Gostei da resposta">
+        <i class="fas fa-thumbs-up"></i>
 
-            messageDiv.querySelector('.message-content').appendChild(actionsDiv);
+      </button>
+      <button class="action-icon-btn small ${message.feedback === 'dislike' ? 'active' : ''}"
+              onclick="handleFeedback('${message.id}', 'dislike')"
+              title="Não gostei da resposta">
+        <i class="fas fa-thumbs-down"></i>
+      </button>
+      <button class="action-icon-btn small"
+              onclick="regenerateLastMessage()"
+              title="Gerar nova resposta">
+        <i class="fas fa-redo"></i>
+      </button>
+      <button class="action-icon-btn small"
+              onclick="copyToClipboard(\`${message.content.replace(/`/g, '\\`')}\`)"
+              title="Copiar resposta">
+        <i class="fas fa-copy"></i>
+      </button>
+    `;
 
-            // Adicionar indicadores de erro/timeout se necessário
+            const messageContent = messageDiv.querySelector('.message-content');
+            messageContent.appendChild(actionsDiv);
+
+            // Indicadores de erro ou timeout
             if (message.status === 'error') {
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'error-indicator';
                 errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Erro ao processar';
-                messageDiv.querySelector('.message-content').insertBefore(errorDiv, actionsDiv);
+                messageContent.insertBefore(errorDiv, actionsDiv);
             } else if (message.status === 'timeout') {
                 const timeoutDiv = document.createElement('div');
                 timeoutDiv.className = 'timeout-indicator';
                 timeoutDiv.innerHTML = '<i class="fas fa-clock"></i> Tempo esgotado';
-                messageDiv.querySelector('.message-content').insertBefore(timeoutDiv, actionsDiv);
+                messageContent.insertBefore(timeoutDiv, actionsDiv);
             }
-        } else if (message.role === 'user') {
-            // Botão de excluir para mensagens do usuário
+        }
+        else if (message.role === 'user') {
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'action-icon-btn small delete-btn';
             deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
@@ -3424,7 +3512,6 @@
                 e.stopPropagation();
                 deleteSpecificMessage(message.id);
             };
-
             messageDiv.appendChild(deleteBtn);
         }
     }
@@ -3447,13 +3534,46 @@
 
     async function handleFeedback(messageId, feedbackType) {
         try {
+            // Verificar se é uma mensagem do assistant
+            const messageDoc = await db.collection('conversations')
+                .doc(currentConversationId)
+                .collection('messages')
+                .doc(messageId)
+                .get();
+
+            if (!messageDoc.exists) {
+                showNotification('Mensagem não encontrada', 'error');
+                return;
+            }
+
+            const messageData = messageDoc.data();
+
+            // Verificar se o usuário é o dono da conversa
+            const conversationDoc = await db.collection('conversations')
+                .doc(currentConversationId)
+                .get();
+
+            if (!conversationDoc.exists) {
+                showNotification('Conversa não encontrada', 'error');
+                return;
+            }
+
+            const conversationData = conversationDoc.data();
+
+            if (conversationData.userId !== currentUser.uid) {
+                showNotification('Permissão negada para atualizar feedback', 'error');
+                return;
+            }
+
+            // Atualizar feedback da mensagem
             await db.collection('conversations')
                 .doc(currentConversationId)
                 .collection('messages')
                 .doc(messageId)
                 .update({
                     feedback: feedbackType,
-                    feedbackAt: firebase.firestore.FieldValue.serverTimestamp()
+                    feedbackAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    feedbackBy: currentUser.uid
                 });
 
             showNotification(`Feedback ${feedbackType === 'like' ? 'positivo' : 'negativo'} registrado`, 'success');
@@ -3469,10 +3589,9 @@
             }
         } catch (error) {
             console.error('Error saving feedback:', error);
-            showNotification('Erro ao salvar feedback', 'error');
+            showNotification('Erro ao salvar feedback: ' + error.message, 'error');
         }
     }
-
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text)
             .then(() => showNotification('Texto copiado para a área de transferência', 'success'))
@@ -3480,6 +3599,9 @@
     }
 
     function showTypingIndicator() {
+        // Remover indicador existente se houver
+        removeTypingIndicator();
+
         const typingDiv = document.createElement('div');
         typingDiv.className = 'message assistant';
         typingDiv.id = 'typingIndicator';
@@ -3499,6 +3621,11 @@
         </div>
     `;
 
+        // Ocultar welcome screen se estiver visível
+        if (welcomeScreen.parentNode === messagesContainer) {
+            welcomeScreen.style.display = 'none';
+        }
+
         messagesContainer.appendChild(typingDiv);
         scrollToBottom();
 
@@ -3510,474 +3637,90 @@
         if (typingIndicator) {
             typingIndicator.remove();
         }
-        isGenerating = false;
-        currentRequestId = null;
     }
 
-    function addAudioInputButton() {
-        const inputActions = document.querySelector('.input-actions');
+    async function sendMessageFromHistory(userMessage) {
+        isGenerating = true;
 
-        // Botão de gravar áudio
-        const audioRecordBtn = document.createElement('button');
-        audioRecordBtn.className = 'upload-btn';
-        audioRecordBtn.id = 'audioRecordBtn';
-        audioRecordBtn.title = 'Gravar áudio';
-        audioRecordBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-        audioRecordBtn.type = 'button';
-
-        // Botão para upload de arquivo de áudio
-        const audioUploadBtn = document.createElement('button');
-        audioUploadBtn.className = 'upload-btn';
-        audioUploadBtn.id = 'audioUploadBtn';
-        audioUploadBtn.title = 'Enviar arquivo de áudio';
-        audioUploadBtn.innerHTML = '<i class="fas fa-file-audio"></i>';
-        audioUploadBtn.type = 'button';
-
-        // Input para upload de arquivo de áudio (hidden)
-        const audioFileInput = document.createElement('input');
-        audioFileInput.type = 'file';
-        audioFileInput.id = 'audioFileInput';
-        audioFileInput.accept = 'audio/*';
-        audioFileInput.style.display = 'none';
-
-        // Inserir antes do botão de imagem
-        inputActions.insertBefore(audioRecordBtn, uploadBtn);
-        inputActions.insertBefore(audioUploadBtn, uploadBtn);
-        inputActions.appendChild(audioFileInput);
-
-        // Event listeners
-        audioRecordBtn.addEventListener('click', toggleAudioRecording);
-        audioUploadBtn.addEventListener('click', () => audioFileInput.click());
-        audioFileInput.addEventListener('change', handleAudioFileUpload);
-    }
-
-    async function toggleAudioRecording() {
-        if (!currentAudioRecorder) {
-            showNotification('Gravação de áudio não disponível', 'error');
-            return;
-        }
-
-        if (!isRecording) {
-            try {
-                currentAudioRecorder.start();
-                isRecording = true;
-                updateAudioButton();
-                showNotification('Gravando áudio... Clique novamente para parar', 'info');
-            } catch (error) {
-                console.error('Error starting recording:', error);
-                showNotification('Erro ao iniciar gravação', 'error');
-            }
-        } else {
-            currentAudioRecorder.stop();
-        }
-    }
-
-    function updateAudioButton() {
-        const audioRecordBtn = document.getElementById('audioRecordBtn');
-        if (!audioRecordBtn) return;
-
-        if (isRecording) {
-            audioRecordBtn.innerHTML = '<i class="fas fa-stop-circle" style="color: #ef4444;"></i>';
-            audioRecordBtn.style.color = '#ef4444';
-        } else {
-            audioRecordBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-            audioRecordBtn.style.color = '';
-        }
-    }
-
-    async function handleAudioFileUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        if (!file.type.startsWith('audio/')) {
-            showNotification('Por favor, selecione um arquivo de áudio', 'error');
-            return;
-        }
-
-        if (file.size > 10 * 1024 * 1024) { // 10MB
-            showNotification('Arquivo de áudio muito grande (máx. 10MB)', 'error');
-            return;
-        }
-
-        await handleAudioUpload(file);
-        event.target.value = '';
-    }
-
-    async function handleAudioUpload(audioBlob) {
         try {
-            showNotification('Processando áudio...', 'info');
+            showTypingIndicator();
 
-            // Upload para Firebase Storage
-            const storageRef = storage.ref();
-            const audioRef = storageRef.child(`users/${currentUser.uid}/audio/${Date.now()}_audio.webm`);
-            const snapshot = await audioRef.put(audioBlob);
-            const downloadURL = await snapshot.ref.getDownloadURL();
-
-            // Criar mensagem com áudio
-            const messageId = generateId();
-            const message = {
-                id: messageId,
-                role: 'user',
-                content: '[Áudio enviado]',
-                audio: {
-                    url: downloadURL,
-                    contentType: audioBlob.type || 'audio/webm',
-                    duration: audioBlob.duration || 0
-                },
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                status: 'sent',
-                conversationId: currentConversationId,
-                userId: currentUser.uid
-            };
-
-            // Enviar para transcrição
             const requestId = generateId();
-            await db.collection('audio_requests').doc(requestId).set({
+            currentRequestId = requestId;
+
+            await db.collection('ai_requests').doc(requestId).set({
                 requestId: requestId,
-                audioUrl: downloadURL,
-                userId: currentUser.uid,
                 conversationId: currentConversationId,
-                messageId: messageId,
+                messageId: userMessage.id,
+                userId: currentUser.uid,
+                userMessage: userMessage.content,
+                images: userMessage.images || [],
+                model: userPreferences?.model || 'amazonia-1-standard',
+                temperature: userPreferences?.temperature || 0.7,
                 status: 'pending',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            // Salvar mensagem inicial
-            await db.collection('conversations').doc(currentConversationId)
-                .collection('messages')
-                .doc(messageId)
-                .set(message);
-
-            showNotification('Áudio enviado. Transcrevendo...', 'success');
+            // Nota: A resposta será automaticamente capturada pelo messageListener
+            // Não precisamos monitorar separadamente
 
         } catch (error) {
-            console.error('Error handling audio upload:', error);
-            showNotification('Erro ao processar áudio', 'error');
+            console.error('Error sending message from history:', error);
+            removeTypingIndicator();
+            isGenerating = false;
+            currentRequestId = null;
+            showNotification('Erro ao processar mensagem', 'error');
         }
     }
 
-    function addRegenerateButton() {
-        const chatActions = document.querySelector('.chat-actions');
-
-        const regenerateBtn = document.createElement('button');
-        regenerateBtn.className = 'action-btn';
-        regenerateBtn.id = 'regenerateBtn';
-        regenerateBtn.title = 'Gerar novamente última resposta';
-        regenerateBtn.innerHTML = '<i class="fas fa-redo"></i>';
-
-        regenerateBtn.addEventListener('click', regenerateLastMessage);
-
-        chatActions.insertBefore(regenerateBtn, settingsBtn);
-    }
-
-    function addMessageToUI(message, animate = true) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${message.role}`;
-        messageDiv.dataset.id = message.id;
-
-        const time = formatTime(message.timestamp?.toDate() || new Date());
-        const avatarText = message.role === 'user'
-            ? getInitials(userName.textContent)
-            : 'A1';
-
-        let contentHTML = '';
-        if (message.role === 'user') {
-            contentHTML = `
-            <div class="message-avatar" title="Você">${avatarText}</div>
-            <div class="message-content">
-                ${message.audio ?
-                `<div class="audio-player">
-                        <audio controls src="${message.audio.url}"></audio>
-                    </div>` : ''}
-                <div class="message-text">${formatMessageContent(message.content)}</div>
-                ${message.images && message.images.length > 0 ?
-                message.images.map(img =>
-                    `<img src="${img.url}" alt="${img.name}" class="message-image" loading="lazy">`
-                ).join('') : ''}
-                <div class="message-time">
-                    <i class="far fa-clock"></i> ${time}
-                </div>
-            </div>
-        `;
-        } else {
-            contentHTML = `
-            <div class="message-avatar" title="Amazônia 1 AI">${avatarText}</div>
-            <div class="message-content">
-                <div class="message-text">${formatMessageContent(message.content)}</div>
-                ${message.status === 'error' ? '<div style="color: var(--error-color); font-size: 12px; margin-top: 8px;"><i class="fas fa-exclamation-circle"></i> Erro ao processar</div>' : ''}
-                ${message.status === 'timeout' ? '<div style="color: var(--warning-color); font-size: 12px; margin-top: 8px;"><i class="fas fa-clock"></i> Tempo esgotado</div>' : ''}
-                <div class="message-time">
-                    <i class="far fa-clock"></i> ${time}
-                </div>
-            </div>
-        `;
-        }
-
-        messageDiv.innerHTML = contentHTML;
-
-        // Adicionar ações à mensagem
-        addMessageActions(messageDiv, message);
-
-        if (animate) {
-            messageDiv.style.opacity = '0';
-            messageDiv.style.transform = `translateY(${message.role === 'user' ? '10px' : '-10px'})`;
-            messagesContainer.appendChild(messageDiv);
-
-            setTimeout(() => {
-                messageDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                messageDiv.style.opacity = '1';
-                messageDiv.style.transform = 'translateY(0)';
-                scrollToBottom();
-            }, 10);
-        } else {
-            messagesContainer.appendChild(messageDiv);
-        }
-    }
-
-    function addFeedbackButton() {
-        const chatActions = document.querySelector('.chat-actions');
-
-        const feedbackBtn = document.createElement('button');
-        feedbackBtn.className = 'action-btn';
-        feedbackBtn.id = 'feedbackBtn';
-        feedbackBtn.title = 'Enviar feedback sobre o Amazônia 1';
-        feedbackBtn.innerHTML = '<i class="fas fa-comment-alt"></i>';
-
-        feedbackBtn.addEventListener('click', () => {
-            const feedbackText = prompt('Por favor, compartilhe seu feedback sobre o Amazônia 1 LLM. O que podemos melhorar?');
-            if (feedbackText && feedbackText.trim()) {
-                submitFeedback(feedbackText.trim());
-            }
+    function setupMessageInput() {
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            const newHeight = Math.min(this.scrollHeight, 200);
+            this.style.height = newHeight + 'px';
+            updateSendButtonState();
         });
 
-        chatActions.insertBefore(feedbackBtn, settingsBtn);
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if ((this.value.trim() || uploadedImages.length > 0) && !isGenerating && !isSending) {
+                    sendMessage().catch(error => {
+                        console.error('Error sending message:', error);
+                        showNotification('Erro ao enviar mensagem', 'error');
+                    });
+                }
+            }
+        });
     }
 
-    async function submitFeedback(feedbackText) {
-        try {
-            const feedbackId = generateId();
-            await db.collection('feedbacks').doc(feedbackId).set({
-                id: feedbackId,
-                userId: currentUser.uid,
-                userEmail: currentUser.email,
-                feedback: feedbackText,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                status: 'new'
-            });
+    function updateSendButtonState() {
+        const hasText = messageInput.value.trim().length > 0;
+        const hasImages = uploadedImages.length > 0;
 
-            showNotification('Feedback enviado com sucesso! Obrigado por ajudar a melhorar o Amazônia 1.', 'success');
-        } catch (error) {
-            console.error('Error submitting feedback:', error);
-            showNotification('Erro ao enviar feedback', 'error');
+        if (isGenerating) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-stop-circle"></i>';
+            sendBtn.title = 'Cancelar geração';
+            sendBtn.classList.add('cancel');
+        } else {
+            sendBtn.disabled = !(hasText || hasImages) || isSending;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            sendBtn.title = 'Enviar mensagem';
+            sendBtn.classList.remove('cancel');
         }
     }
 
-    const additionalCSS = `
-/* Estilos para botões de ação nas mensagens */
-.message-actions {
-    margin-top: 12px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(0,0,0,0.1);
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.dark-theme .message-actions {
-    border-top-color: rgba(255,255,255,0.1);
-}
-
-.action-icon-btn.small {
-    padding: 6px 12px;
-    font-size: 12px;
-    border-radius: 16px;
-    background: var(--light-secondary);
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    height: 28px;
-}
-
-.action-icon-btn.small:hover {
-    background: var(--border);
-    color: var(--text-primary);
-}
-
-.action-icon-btn.small.active {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-}
-
-.action-icon-btn.small.delete-btn:hover {
-    background: var(--error-color);
-    color: white;
-    border-color: var(--error-color);
-}
-
-/* Player de áudio */
-.audio-player {
-    margin-bottom: 12px;
-}
-
-.audio-player audio {
-    width: 100%;
-    max-width: 300px;
-    height: 32px;
-    border-radius: 16px;
-}
-
-/* Indicador de gravação */
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
-}
-
-.recording-indicator {
-    animation: pulse 1s infinite;
-    color: var(--error-color);
-}
-
-/* Botão de enviar quando está gerando */
-.send-btn.cancel {
-    background: var(--error-color);
-}
-
-.send-btn.cancel:hover {
-    background: #dc2626;
-}
-`;
-
-    const style = document.createElement('style');
-    style.textContent = additionalCSS;
-    document.head.appendChild(style);
-
-    function monitorAIResponse(requestId) {
-        let responseTimeout = null;
-        const responseListener = db.collection('ai_responses')
-            .where('requestId', '==', requestId)
-            .limit(1)
-            .onSnapshot(async (snapshot) => {
-                if (!snapshot.empty && isGenerating && currentRequestId === requestId) {
-                    snapshot.forEach(async (doc) => {
-                        const response = doc.data();
-
-                        if (response.status === 'completed' && response.assistantMessage) {
-                            // Limpar
-                            if (responseTimeout) clearTimeout(responseTimeout);
-                            responseListener();
-
-                            // Remover indicador de digitação
-                            removeTypingIndicator();
-
-                            // Salvar mensagem do assistente
-                            const assistantMessageId = generateId();
-                            const assistantMessage = {
-                                id: assistantMessageId,
-                                role: 'assistant',
-                                content: response.assistantMessage,
-                                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                                status: 'sent',
-                                conversationId: currentConversationId,
-                                userId: currentUser.uid,
-                                requestId: requestId,
-                                model: response.model || userPreferences?.model
-                            };
-
-                            await db.collection('conversations').doc(currentConversationId)
-                                .collection('messages')
-                                .doc(assistantMessageId)
-                                .set(assistantMessage);
-
-                            // Atualizar contagem da conversa
-                            await db.collection('conversations').doc(currentConversationId).update({
-                                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                                messageCount: firebase.firestore.FieldValue.increment(1)
-                            });
-
-                            isGenerating = false;
-                            currentRequestId = null;
-                            updateSendButtonState();
-                        } else if (response.status === 'failed') {
-                            // Limpar
-                            if (responseTimeout) clearTimeout(responseTimeout);
-                            responseListener();
-
-                            removeTypingIndicator();
-
-                            // Mensagem de erro
-                            const errorMessageId = generateId();
-                            const errorMessage = {
-                                id: errorMessageId,
-                                role: 'assistant',
-                                content: 'Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.',
-                                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                                status: 'error',
-                                conversationId: currentConversationId,
-                                userId: currentUser.uid,
-                                requestId: requestId
-                            };
-
-                            await db.collection('conversations').doc(currentConversationId)
-                                .collection('messages')
-                                .doc(errorMessageId)
-                                .set(errorMessage);
-
-                            isGenerating = false;
-                            currentRequestId = null;
-                            updateSendButtonState();
-
-                            showNotification('Erro ao processar mensagem', 'error');
-                        }
-                    });
-                }
-            });
-
-        // Timeout
-        responseTimeout = setTimeout(() => {
-            if (isGenerating && currentRequestId === requestId) {
-                responseListener();
-                removeTypingIndicator();
-
-                const timeoutMessageId = generateId();
-                const timeoutMessage = {
-                    id: timeoutMessageId,
-                    role: 'assistant',
-                    content: 'Desculpe, o serviço está demorando muito para responder. Por favor, tente novamente.',
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    status: 'timeout',
-                    conversationId: currentConversationId,
-                    userId: currentUser.uid
-                };
-
-                db.collection('conversations').doc(currentConversationId)
-                    .collection('messages')
-                    .doc(timeoutMessageId)
-                    .set(timeoutMessage);
-
-                isGenerating = false;
-                currentRequestId = null;
-                updateSendButtonState();
-
-                showNotification('Tempo esgotado para resposta', 'warning');
-            }
-        }, 30000);
-    }
 
     function initializeEventListeners() {
-        // Send message - corrigindo para não usar await diretamente
         sendBtn.addEventListener('click', function() {
             if (isGenerating) {
                 cancelGeneration().catch(error => {
                     console.error('Error cancelling generation:', error);
                     showNotification('Erro ao cancelar geração', 'error');
                 });
-            } else {
+            } else if (!isSending) {
                 sendMessage().catch(error => {
                     console.error('Error sending message:', error);
                     showNotification('Erro ao enviar mensagem', 'error');
@@ -3995,23 +3738,21 @@
                 sendBtn.disabled = false;
                 sendBtn.classList.add('cancel');
             } else {
-                sendBtn.disabled = !(hasText || hasImages);
+                sendBtn.disabled = !(hasText || hasImages) || isSending;
                 sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
                 sendBtn.title = 'Enviar mensagem';
                 sendBtn.classList.remove('cancel');
             }
 
-            // Auto-resize textarea
             this.style.height = 'auto';
             const newHeight = Math.min(this.scrollHeight, 200);
             this.style.height = newHeight + 'px';
         });
 
-        // Handle Enter key
         messageInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                if ((this.value.trim() || uploadedImages.length > 0) && !isGenerating) {
+                if ((this.value.trim() || uploadedImages.length > 0) && !isGenerating && !isSending) {
                     sendMessage().catch(error => {
                         console.error('Error sending message:', error);
                         showNotification('Erro ao enviar mensagem', 'error');
@@ -4020,7 +3761,6 @@
             }
         });
 
-        // Upload image
         uploadBtn.addEventListener('click', () => {
             imageUpload.value = '';
             imageUpload.click();
@@ -4028,7 +3768,6 @@
 
         imageUpload.addEventListener('change', handleImageUpload);
 
-        // New chat
         newChatBtn.addEventListener('click', () => {
             searchInput.value = '';
             searchConversations('');
@@ -4038,7 +3777,6 @@
             });
         });
 
-        // Logout
         logoutBtn.addEventListener('click', () => {
             if (confirm('Tem certeza que deseja sair?')) {
                 auth.signOut().then(() => {
@@ -4050,7 +3788,6 @@
             }
         });
 
-        // Settings
         settingsBtn.addEventListener('click', () => {
             settingsModal.classList.add('active');
         });
@@ -4065,7 +3802,6 @@
             }
         });
 
-        // Update setting values in real-time
         temperatureSlider.addEventListener('input', () => {
             temperatureValue.textContent = temperatureSlider.value;
         });
@@ -4099,7 +3835,6 @@
             languageValue.textContent = selectedOption.text;
         });
 
-        // Save settings
         saveSettings.addEventListener('click', () => {
             const newPreferences = {
                 theme: themeSelect.value,
@@ -4124,7 +3859,6 @@
             });
         });
 
-        // Mobile menu
         mobileMenuBtn.addEventListener('click', () => {
             sidebar.classList.add('active');
             sidebarOverlay.classList.add('active');
@@ -4135,14 +3869,11 @@
             sidebarOverlay.classList.remove('active');
         });
 
-        // Search conversations
         searchInput.addEventListener('input', (e) => {
             searchConversations(e.target.value);
         });
 
-        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            // Ctrl/Cmd + N for new chat
             if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
                 e.preventDefault();
                 searchInput.value = '';
@@ -4153,7 +3884,6 @@
                 });
             }
 
-            // Ctrl/Cmd + R to regenerate
             if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
                 e.preventDefault();
                 regenerateLastMessage().catch(error => {
@@ -4162,13 +3892,11 @@
                 });
             }
 
-            // Ctrl/Cmd + K to focus search
             if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
                 e.preventDefault();
                 searchInput.focus();
             }
 
-            // Esc to close sidebar (mobile) or settings
             if (e.key === 'Escape') {
                 if (sidebar.classList.contains('active')) {
                     sidebar.classList.remove('active');
@@ -4180,142 +3908,395 @@
             }
         });
 
-        // Handle window resize
         window.addEventListener('resize', handleResize);
-
-        // Adicionar botões de áudio e regeneração
-        addAudioInputButton();
-        addRegenerateButton();
-
-        // Adicionar botão de feedback no header
-        addFeedbackButton();
     }
 
-    async function sendMessageFromHistory(userMessage) {
-        isGenerating = true;
 
-        try {
-            // Mostrar indicador de digitação
-            showTypingIndicator();
-
-            // Criar nova requisição
-            const requestId = generateId();
-            currentRequestId = requestId;
-
-            await db.collection('ai_requests').doc(requestId).set({
-                requestId: requestId,
-                conversationId: currentConversationId,
-                messageId: userMessage.id,
-                userId: currentUser.uid,
-                userMessage: userMessage.content,
-                images: userMessage.images || [],
-                model: userPreferences?.model || 'amazonia-1-standard',
-                temperature: userPreferences?.temperature || 0.7,
-                status: 'pending',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            // Monitorar resposta (mesma lógica do sendMessage original)
-            monitorAIResponse(requestId);
-
-        } catch (error) {
-            console.error('Error sending message from history:', error);
-            removeTypingIndicator();
-            isGenerating = false;
-            currentRequestId = null;
-            showNotification('Erro ao processar mensagem', 'error');
+    function setupAIResponseListener(requestId, userMessageId) {
+        // Cancelar listener anterior se existir
+        if (aiResponseListeners.has(requestId)) {
+            aiResponseListeners.get(requestId)();
         }
-    }
 
-    function setupMessageInput() {
-        // Auto-resize textarea
-        messageInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            const newHeight = Math.min(this.scrollHeight, 200);
-            this.style.height = newHeight + 'px';
-        });
+        // Criar listener específico para esta requisição
+        const unsubscribe = db.collection('ai_responses')
+            .where('requestId', '==', requestId)
+            .where('conversationId', '==', currentConversationId)
+            .limit(1)
+            .onSnapshot((snapshot) => {
+                if (!snapshot.empty) {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === 'added') {
+                            const response = change.doc.data();
+                            console.log('AI Response received:', response);
 
-        // Handle Enter key
-        messageInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if ((this.value.trim() || uploadedImages.length > 0) && !isGenerating) {
-                    sendMessage().catch(error => {
-                        console.error('Error sending message:', error);
-                        showNotification('Erro ao enviar mensagem', 'error');
+                            // Processar a resposta do AI
+                            processAIResponse(response, userMessageId);
+
+                            // Remover este listener após processar
+                            if (aiResponseListeners.has(requestId)) {
+                                aiResponseListeners.get(requestId)();
+                                aiResponseListeners.delete(requestId);
+                            }
+                        }
                     });
                 }
-            }
-        });
+            }, (error) => {
+                console.error('Error listening to AI response:', error);
+            });
+
+        // Armazenar a função para cancelar o listener
+        aiResponseListeners.set(requestId, unsubscribe);
     }
 
+    async function processAIResponse(response, userMessageId) {
+        try {
+            removeTypingIndicator();
+
+            if (response.status === 'completed' && response.assistantMessage) {
+                const assistantMessage = {
+                    role: 'assistant',
+                    content: response.assistantMessage,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'sent',
+                    model: response.model || userPreferences?.model || 'amazonia-1-standard',
+                    requestId: response.requestId || currentRequestId
+                    // NÃO incluir userId para mensagens do assistant
+                };
+
+                // Salvar a mensagem do assistant no Firestore
+                const messageRef = await db.collection('conversations')
+                    .doc(currentConversationId)
+                    .collection('messages')
+                    .add(assistantMessage);
+
+                // Atualizar o objeto com o ID gerado
+                assistantMessage.id = messageRef.id;
+
+                // Exibir na UI
+                addMessageToUI(assistantMessage, true);
+
+                // Atualizar título da conversa se for a primeira mensagem
+                if (currentChatTitle.textContent === 'Nova Conversa') {
+                    // Pegar o conteúdo da última mensagem do usuário
+                    const lastUserMsgSnapshot = await db.collection('conversations')
+                        .doc(currentConversationId)
+                        .collection('messages')
+                        .where('role', '==', 'user')
+                        .orderBy('timestamp', 'desc')
+                        .limit(1)
+                        .get();
+
+                    if (!lastUserMsgSnapshot.empty) {
+                        const lastUserContent = lastUserMsgSnapshot.docs[0].data().content || 'Pergunta sobre IA';
+                        const title = lastUserContent.substring(0, 50) + (lastUserContent.length > 50 ? '...' : '');
+                        currentChatTitle.textContent = title;
+
+                        await db.collection('conversations').doc(currentConversationId).update({
+                            title: title,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+                }
+
+                console.log('Resposta da IA salva e exibida com sucesso (ID:', messageRef.id, ')');
+
+            } else if (response.status === 'error') {
+                const errorMessage = {
+                    role: 'assistant',
+                    content: 'Desculpe, houve um erro ao gerar a resposta. Por favor, tente novamente.',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    status: 'error'
+                    // NÃO incluir userId para mensagens do assistant
+                };
+                const errorRef = await db.collection('conversations')
+                    .doc(currentConversationId)
+                    .collection('messages')
+                    .add(errorMessage);
+
+                errorMessage.id = errorRef.id;
+                addMessageToUI(errorMessage, true);
+                showNotification('Erro na geração da resposta', 'error');
+            }
+
+        } catch (error) {
+            console.error('Erro ao processar e salvar resposta do AI:', error);
+            removeTypingIndicator();
+            showNotification('Erro ao exibir resposta do AI: ' + error.message, 'error');
+        } finally {
+            isGenerating = false;
+            currentRequestId = null;
+            updateSendButtonState();
+        }
+    }
+    // Corrigir a função formatTime para lidar com diferentes tipos de timestamp
+    function formatTime(timestamp) {
+        if (!timestamp) return '';
+
+        let date;
+        try {
+            if (typeof timestamp === 'object') {
+                if (timestamp.toDate) {
+                    // É um Firestore Timestamp
+                    date = timestamp.toDate();
+                } else if (timestamp._seconds) {
+                    // É um objeto com _seconds
+                    date = new Date(timestamp._seconds * 1000);
+                } else if (timestamp instanceof Date) {
+                    // Já é um Date
+                    date = timestamp;
+                } else {
+                    date = new Date();
+                }
+            } else if (typeof timestamp === 'string' || typeof timestamp === 'number') {
+                // É uma string ou número
+                date = new Date(timestamp);
+            } else {
+                date = new Date();
+            }
+
+            // Verificar se a data é válida
+            if (isNaN(date.getTime())) {
+                return 'Agora';
+            }
+
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Agora';
+            if (diffMins < 60) return `${diffMins} min atrás`;
+            if (diffHours < 24) return `${diffHours}h atrás`;
+            if (diffDays < 7) return `${diffDays}d atrás`;
+
+            return date.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (error) {
+            console.error('Erro ao formatar tempo:', error, timestamp);
+            return 'Agora';
+        }
+    }
+    function addMessageToUI(message, animate = true) {
+        try {
+            // Verificar se a mensagem já existe no DOM
+            const existingMessage = document.querySelector(`.message[data-id="${message.id}"]`);
+            if (existingMessage) {
+                console.log('Message already in UI:', message.id);
+                return;
+            }
+
+            // Verificar se já foi exibida nesta sessão
+            if (displayedMessageIds.has(message.id)) {
+                console.log('Message already displayed in this session:', message.id);
+                return;
+            }
+
+            // Adicionar ao conjunto de IDs exibidos
+            displayedMessageIds.add(message.id);
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${message.role}`;
+            messageDiv.dataset.id = message.id;
+
+            // CORRIGIDO: Lidar corretamente com timestamp
+            let timestamp;
+            try {
+                if (message.timestamp && typeof message.timestamp === 'object') {
+                    // É um objeto Firestore Timestamp
+                    if (message.timestamp.toDate) {
+                        timestamp = message.timestamp.toDate();
+                    } else if (message.timestamp._seconds) {
+                        // É um objeto com _seconds e _nanoseconds
+                        timestamp = new Date(message.timestamp._seconds * 1000);
+                    } else {
+                        timestamp = new Date();
+                    }
+                } else if (message.timestamp) {
+                    // É uma string ou número
+                    timestamp = new Date(message.timestamp);
+                } else {
+                    timestamp = new Date();
+                }
+            } catch (e) {
+                console.warn('Erro ao processar timestamp:', e);
+                timestamp = new Date();
+            }
+
+            const time = formatTime(timestamp);
+            const avatarText = message.role === 'user'
+                ? (userName ? getInitials(userName.textContent) : 'Você')
+                : 'A1';
+
+            // Determinar se há conteúdo para exibir
+            const hasContent = message.content && message.content.trim().length > 0;
+            const hasImages = message.images && message.images.length > 0;
+            const hasAudio = message.audio && message.audio.url;
+
+            if (message.role === 'user') {
+                messageDiv.innerHTML = `
+                <div class="message-avatar" title="Você">${avatarText}</div>
+                <div class="message-content">
+                    ${hasAudio ? `
+                        <div class="audio-player">
+                            <audio controls src="${message.audio.url}"></audio>
+                        </div>` : ''}
+                    ${hasContent ? `<div class="message-text">${formatMessageContent(message.content)}</div>` : ''}
+                    ${hasImages ?
+                    message.images.map(img =>
+                        `<img src="${img.url}" alt="${img.name}" class="message-image" loading="lazy">`
+                    ).join('') : ''}
+                    <div class="message-time">
+                        <i class="far fa-clock"></i> ${time}
+                    </div>
+                </div>
+            `;
+            } else {
+                messageDiv.innerHTML = `
+                <div class="message-avatar" title="Amazônia 1 AI">${avatarText}</div>
+                <div class="message-content">
+                    ${hasContent ? `<div class="message-text">${formatMessageContent(message.content)}</div>` : ''}
+                    ${message.status === 'error' ?
+                    '<div style="color: var(--error-color); font-size: 12px; margin-top: 8px;"><i class="fas fa-exclamation-circle"></i> Erro ao processar</div>' : ''}
+                    ${message.status === 'timeout' ?
+                    '<div style="color: var(--warning-color); font-size: 12px; margin-top: 8px;"><i class="fas fa-clock"></i> Tempo esgotado</div>' : ''}
+                    <div class="message-time">
+                        <i class="far fa-clock"></i> ${time}
+                    </div>
+                </div>
+            `;
+            }
+
+            // Remover welcome screen se estiver visível
+            if (welcomeScreen.parentNode === messagesContainer) {
+                welcomeScreen.style.display = 'none';
+            }
+
+            // Adicionar ao container
+            messagesContainer.appendChild(messageDiv);
+
+            // Aplicar animação se solicitado
+            if (animate) {
+                messageDiv.style.opacity = '0';
+                messageDiv.style.transform = `translateY(${message.role === 'user' ? '10px' : '-10px'})`;
+
+                setTimeout(() => {
+                    messageDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    messageDiv.style.opacity = '1';
+                    messageDiv.style.transform = 'translateY(0)';
+                    scrollToBottom();
+                }, 10);
+            } else {
+                // Sem animação, apenas scroll
+                setTimeout(() => {
+                    scrollToBottom();
+                }, 10);
+            }
+
+            // Adicionar ações apenas se não for um indicador de digitação
+            if (message.id !== 'typingIndicator') {
+                addMessageActions(messageDiv, message);
+            }
+
+            // Se for uma mensagem do assistente, resetar o estado de geração
+            if (message.role === 'assistant' && isGenerating) {
+                isGenerating = false;
+                currentRequestId = null;
+                updateSendButtonState();
+            }
+
+        } catch (error) {
+            console.error('Error adding message to UI:', error);
+        }
+    }  // Corrigir a função sendMessage para lidar melhor com a criação de conversas
     async function sendMessage() {
-        // Se já está enviando/gerando, cancelar
         if (isGenerating) {
             await cancelGeneration();
             return;
         }
 
-        if (isSending) return;
+        if (isSending) {
+            console.log('Já está enviando mensagem...');
+            return;
+        }
 
         const text = messageInput.value.trim();
         if (!text && uploadedImages.length === 0) return;
 
-        // Ensure we have a conversation
-        if (!currentConversationId) {
-            const newConvId = await createNewConversation();
-            if (!newConvId) return;
-        }
-
         isSending = true;
-        isGenerating = true;
-
-        // Atualizar botão para modo cancelar
-        sendBtn.disabled = false;
-        sendBtn.innerHTML = '<i class="fas fa-stop-circle"></i>';
-        sendBtn.title = 'Cancelar geração';
-        sendBtn.classList.add('cancel');
 
         try {
-            // 1. Save user message to Firebase
+            // Criar conversa se necessário
+            if (!currentConversationId) {
+                const newConvId = await createNewConversation();
+                if (!newConvId) {
+                    showNotification('Erro ao criar conversa', 'error');
+                    isSending = false;
+                    return;
+                }
+            }
+
+            // Criar mensagem do usuário COM TODOS OS CAMPOS NECESSÁRIOS
             const userMessageId = generateId();
             const userMessage = {
                 id: userMessageId,
                 role: 'user',
-                content: text,
+                content: text || '', // Conteúdo obrigatório
                 images: [],
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(), // Usar serverTimestamp
+                userId: currentUser.uid, // userId obrigatório
                 status: 'sent',
-                conversationId: currentConversationId,
-                userId: currentUser.uid
+                conversationId: currentConversationId
             };
 
-            // Upload images if any
+            // Upload de imagens
             for (const image of uploadedImages) {
                 if (image.file) {
-                    const downloadURL = await uploadImageToStorage(image.file);
-                    userMessage.images.push({
-                        url: downloadURL,
-                        name: image.file.name,
-                        contentType: image.file.type
-                    });
+                    try {
+                        const downloadURL = await uploadImageToStorage(image.file);
+                        userMessage.images.push({
+                            url: downloadURL,
+                            name: image.file.name,
+                            contentType: image.file.type
+                        });
+                    } catch (uploadError) {
+                        console.error('Error uploading image:', uploadError);
+                        showNotification(`Erro ao enviar imagem ${image.file.name}`, 'error');
+                    }
                 }
             }
 
-            // Save user message to Firestore
+            // Limpar UI
+            messageInput.value = '';
+            uploadedImages = [];
+            imagePreview.innerHTML = '';
+            messageInput.style.height = 'auto';
+
+            // Mostrar mensagem do usuário na UI
+            if (welcomeScreen.parentNode === messagesContainer) {
+                welcomeScreen.style.display = 'none';
+            }
+            addMessageToUI(userMessage, true);
+
+            // Salvar no Firestore COM TODOS OS CAMPOS NECESSÁRIOS
             await db.collection('conversations').doc(currentConversationId)
                 .collection('messages')
                 .doc(userMessageId)
                 .set(userMessage);
 
-            // Update conversation count and timestamp
+            // Atualizar conversa
             await db.collection('conversations').doc(currentConversationId).update({
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
                 messageCount: firebase.firestore.FieldValue.increment(1)
             });
 
-            // Update title if it's the first message
+            // Atualizar título da conversa
             if (text && currentChatTitle.textContent === 'Nova Conversa') {
                 const title = text.substring(0, 50) + (text.length > 50 ? '...' : '');
                 await db.collection('conversations').doc(currentConversationId).update({
@@ -4324,25 +4305,23 @@
                 currentChatTitle.textContent = title;
             }
 
-            // Clear input and images
-            messageInput.value = '';
-            uploadedImages = [];
-            imagePreview.innerHTML = '';
-            messageInput.style.height = 'auto';
-
-            // Show typing indicator with cancel button
+            // Preparar para resposta do AI
+            isGenerating = true;
             showTypingIndicator();
 
-            // 2. Create AI request for Python to process
             const requestId = generateId();
             currentRequestId = requestId;
 
+            // Configurar listener para resposta
+            setupAIResponseListener(requestId, userMessageId);
+
+            // Criar requisição para AI - garantir que tenha userId
             await db.collection('ai_requests').doc(requestId).set({
                 requestId: requestId,
                 conversationId: currentConversationId,
                 messageId: userMessageId,
-                userId: currentUser.uid,
-                userMessage: text,
+                userId: currentUser.uid, // userId obrigatório
+                userMessage: text || '',
                 images: userMessage.images,
                 model: userPreferences?.model || 'amazonia-1-standard',
                 temperature: userPreferences?.temperature || 0.7,
@@ -4351,72 +4330,350 @@
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            // 3. Monitor AI response with timeout usando a nova função
-            monitorAIResponse(requestId);
+            // Timeout de 90 segundos
+            setTimeout(() => {
+                if (isGenerating && currentRequestId === requestId) {
+                    console.log('Timeout: resetando estado');
+                    removeTypingIndicator();
+                    isGenerating = false;
+                    currentRequestId = null;
+                    updateSendButtonState();
+                    showNotification('O tempo de resposta excedeu o limite. Tente novamente.', 'warning');
+
+                    // Remover listener
+                    if (aiResponseListeners.has(requestId)) {
+                        aiResponseListeners.get(requestId)();
+                        aiResponseListeners.delete(requestId);
+                    }
+                }
+            }, 90000);
 
         } catch (error) {
             console.error('Error sending message:', error);
             showNotification('Erro ao enviar mensagem: ' + error.message, 'error');
             removeTypingIndicator();
-            isSending = false;
             isGenerating = false;
             currentRequestId = null;
-            // Reset send button to normal state
             updateSendButtonState();
+        } finally {
+            isSending = false;
         }
     }
+    // Corrigir a função createNewConversation para evitar duplicação
+    async function createNewConversation() {
+        if (isCreatingConversation) {
+            console.log('Aguarde, já está criando uma conversa...');
 
-    function updateSendButtonState() {
-        const hasText = messageInput.value.trim().length > 0;
-        const hasImages = uploadedImages.length > 0;
-
-        if (isGenerating) {
-            sendBtn.disabled = false;
-            sendBtn.innerHTML = '<i class="fas fa-stop-circle"></i>';
-            sendBtn.title = 'Cancelar geração';
-            sendBtn.classList.add('cancel');
-        } else {
-            sendBtn.disabled = !(hasText || hasImages);
-            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-            sendBtn.title = 'Enviar mensagem';
-            sendBtn.classList.remove('cancel');
-        }
-    }
-
-    messageInput.addEventListener('input', function() {
-        const hasText = this.value.trim().length > 0;
-        const hasImages = uploadedImages.length > 0;
-
-        if (isGenerating) {
-            sendBtn.disabled = false;
-            sendBtn.innerHTML = '<i class="fas fa-stop-circle"></i>';
-            sendBtn.title = 'Cancelar geração';
-            sendBtn.classList.add('cancel');
-        } else {
-            sendBtn.disabled = !(hasText || hasImages);
-            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-            sendBtn.title = 'Enviar mensagem';
-            sendBtn.classList.remove('cancel');
-        }
-
-        // Auto-resize textarea
-        this.style.height = 'auto';
-        const newHeight = Math.min(this.scrollHeight, 200);
-        this.style.height = newHeight + 'px';
-    });
-
-    messageInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            if ((this.value.trim() || uploadedImages.length > 0) && !isGenerating) {
-                sendMessage().catch(error => {
-                    console.error('Error sending message:', error);
-                    showNotification('Erro ao enviar mensagem', 'error');
-                });
+            // Esperar até que a conversa seja criada
+            let waitCount = 0;
+            while (isCreatingConversation && waitCount < 100) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                waitCount++;
             }
+
+            // Se ainda não tiver currentConversationId após espera
+            if (!currentConversationId) {
+                console.error('Timeout ao criar conversa');
+                showNotification('Erro ao criar conversa (timeout)', 'error');
+                return null;
+            }
+
+            return currentConversationId;
+        }
+
+        try {
+            isCreatingConversation = true;
+
+            const conversationRef = await db.collection('conversations').add({
+                userId: currentUser.uid,
+                title: 'Nova Conversa',
+                model: userPreferences?.model || 'amazonia-1-standard',
+                status: 'active',
+                favorite: false,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                messageCount: 0
+            });
+
+            currentConversationId = conversationRef.id;
+
+            // Atualizar UI
+            messagesContainer.innerHTML = '';
+            welcomeScreen.style.display = 'flex';
+            messagesContainer.appendChild(welcomeScreen);
+            currentChatTitle.textContent = 'Nova Conversa';
+
+            uploadedImages = [];
+            imagePreview.innerHTML = '';
+            displayedMessageIds.clear();
+
+            updateActiveConversation();
+            messageInput.focus();
+
+            console.log('Nova conversa criada:', conversationRef.id);
+            return conversationRef.id;
+        } catch (error) {
+            console.error('Error creating conversation:', error);
+            showNotification('Erro ao criar conversa', 'error');
+            return null;
+        } finally {
+            isCreatingConversation = false;
+        }
+    }
+
+    // Adicionar esta função para evitar múltiplas inicializações
+    function safeToDate(timestamp) {
+        try {
+            if (timestamp && typeof timestamp === 'object' && timestamp.toDate) {
+                return timestamp.toDate();
+            }
+            return new Date(timestamp);
+        } catch (e) {
+            console.warn('Erro ao converter timestamp:', e);
+            return new Date();
+        }
+    }
+
+    async function loadConversations() {
+        try {
+            console.log('loadConversations: Iniciando carregamento...', currentUser.uid);
+
+            // Limpar listener anterior se existir
+            if (conversationsListener) {
+                console.log('loadConversations: Removendo listener anterior');
+                conversationsListener();
+                conversationsListener = null;
+            }
+
+            // Limpar lista atual
+            conversationsList.innerHTML = '';
+
+            // Mostrar estado vazio inicial
+            emptyConversations.style.display = 'flex';
+            noResults.style.display = 'none';
+
+            // Pequeno delay para evitar conflitos
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Verificar se o usuário está autenticado
+            if (!currentUser || !currentUser.uid) {
+                console.error('loadConversations: Usuário não autenticado');
+                return;
+            }
+
+            console.log('loadConversations: Configurando listener para usuário:', currentUser.uid);
+
+            // Criar listener para conversas
+            conversationsListener = db.collection('conversations')
+                .where('userId', '==', currentUser.uid)
+                .orderBy('updatedAt', 'desc')
+                .onSnapshot(async (snapshot) => {
+                    try {
+                        console.log('loadConversations: Snapshot recebido -', snapshot.size, 'conversas');
+
+                        // Limpar lista atual
+                        conversationsList.innerHTML = '';
+
+                        if (snapshot.empty) {
+                            console.log('loadConversations: Nenhuma conversa encontrada');
+                            emptyConversations.style.display = 'flex';
+                            noResults.style.display = 'none';
+                            initialLoadComplete = true;
+                            return;
+                        }
+
+                        // Esconder estado vazio
+                        emptyConversations.style.display = 'none';
+                        noResults.style.display = 'none';
+
+                        // Processar conversas
+                        const conversations = [];
+                        snapshot.forEach(doc => {
+                            try {
+                                const data = doc.data();
+                                conversations.push({
+                                    id: doc.id,
+                                    ...data
+                                });
+                                console.log('loadConversations: Conversa encontrada -', doc.id, data.title);
+                            } catch (error) {
+                                console.error('loadConversations: Erro ao processar documento:', doc.id, error);
+                            }
+                        });
+
+                        console.log('loadConversations: Total de conversas processadas:', conversations.length);
+
+                        // Ordenar: favoritos primeiro, depois por data
+                        conversations.sort((a, b) => {
+                            try {
+                                // Favoritos primeiro
+                                if (a.favorite && !b.favorite) return -1;
+                                if (!a.favorite && b.favorite) return 1;
+
+                                // Depois por data mais recente
+                                let timeA, timeB;
+
+                                try {
+                                    timeA = a.updatedAt?.toDate ? a.updatedAt.toDate() :
+                                        new Date(a.updatedAt?._seconds * 1000 || a.updatedAt || 0);
+                                } catch (e) {
+                                    timeA = new Date(0);
+                                }
+
+                                try {
+                                    timeB = b.updatedAt?.toDate ? b.updatedAt.toDate() :
+                                        new Date(b.updatedAt?._seconds * 1000 || b.updatedAt || 0);
+                                } catch (e) {
+                                    timeB = new Date(0);
+                                }
+
+                                return timeB.getTime() - timeA.getTime();
+                            } catch (error) {
+                                console.error('loadConversations: Erro ao ordenar conversas:', error);
+                                return 0;
+                            }
+                        });
+
+                        // Adicionar cada conversa à UI
+                        conversations.forEach(conversation => {
+                            try {
+                                addConversationToUI(conversation.id, conversation);
+                            } catch (error) {
+                                console.error('loadConversations: Erro ao adicionar conversa à UI:', conversation.id, error);
+                            }
+                        });
+
+                        console.log('loadConversations: Conversas adicionadas à UI:', conversationsList.children.length);
+
+                        // Atualizar conversa ativa se houver uma selecionada
+                        updateActiveConversation();
+
+                        initialLoadComplete = true;
+
+                    } catch (snapshotError) {
+                        console.error('loadConversations: Erro no snapshot:', snapshotError);
+                        emptyConversations.style.display = 'flex';
+                        noResults.style.display = 'none';
+                    }
+                }, (error) => {
+                    console.error('loadConversations: Erro no listener:', error);
+
+                    if (error.code === 'failed-precondition') {
+                        console.warn('loadConversations: Índice não criado ainda. Tentando carregar sem ordenação...');
+
+                        // Fallback: carregar sem ordenação
+                        db.collection('conversations')
+                            .where('userId', '==', currentUser.uid)
+                            .get()
+                            .then((snapshot) => {
+                                console.log('loadConversations: Fallback -', snapshot.size, 'conversas');
+
+                                if (snapshot.empty) {
+                                    emptyConversations.style.display = 'flex';
+                                    noResults.style.display = 'none';
+                                    return;
+                                }
+
+                                emptyConversations.style.display = 'none';
+                                noResults.style.display = 'none';
+
+                                const conversations = [];
+                                snapshot.forEach(doc => {
+                                    const data = doc.data();
+                                    conversations.push({
+                                        id: doc.id,
+                                        ...data
+                                    });
+                                });
+
+                                // Ordenar localmente por data
+                                conversations.sort((a, b) => {
+                                    let timeA, timeB;
+
+                                    try {
+                                        timeA = a.updatedAt?.toDate ? a.updatedAt.toDate() :
+                                            new Date(a.updatedAt?._seconds * 1000 || a.updatedAt || 0);
+                                    } catch (e) {
+                                        timeA = new Date(0);
+                                    }
+
+                                    try {
+                                        timeB = b.updatedAt?.toDate ? b.updatedAt.toDate() :
+                                            new Date(b.updatedAt?._seconds * 1000 || b.updatedAt || 0);
+                                    } catch (e) {
+                                        timeB = new Date(0);
+                                    }
+
+                                    return timeB.getTime() - timeA.getTime();
+                                });
+
+                                conversations.forEach(conversation => {
+                                    addConversationToUI(conversation.id, conversation);
+                                });
+
+                                updateActiveConversation();
+                            })
+                            .catch((fallbackError) => {
+                                console.error('loadConversations: Erro no fallback:', fallbackError);
+                                showNotification('Erro ao carregar conversas', 'error');
+                            });
+
+                    } else if (error.code === 'permission-denied') {
+                        console.error('loadConversations: Permissão negada. Verifique as regras de segurança.');
+                        showNotification('Permissão negada para acessar conversas', 'error');
+                    } else {
+                        showNotification('Erro ao carregar conversas: ' + error.message, 'error');
+                    }
+                });
+
+            console.log('loadConversations: Listener configurado com sucesso');
+
+        } catch (error) {
+            console.error('loadConversations: Erro geral:', error);
+            showNotification('Erro ao carregar conversas', 'error');
+        }
+    }
+
+    // Adicione esta função para limpar tudo ao fazer logout
+    logoutBtn.addEventListener('click', () => {
+        if (confirm('Tem certeza que deseja sair?')) {
+            // Limpar todos os listeners
+            if (messageListener) messageListener();
+            if (conversationsListener) conversationsListener();
+            aiResponseListeners.forEach(unsubscribe => unsubscribe());
+            aiResponseListeners.clear();
+
+            auth.signOut().then(() => {
+                showNotification('Logout realizado com sucesso', 'success');
+            }).catch(error => {
+                console.error('Error signing out:', error);
+                showNotification('Erro ao fazer logout', 'error');
+            });
         }
     });
 
+
+    // Adicione esta função para limpar tudo ao fazer logout
+    logoutBtn.addEventListener('click', () => {
+        if (confirm('Tem certeza que deseja sair?')) {
+            // Limpar todos os listeners
+            if (messageListener) messageListener();
+            if (conversationsListener) conversationsListener();
+            aiResponseListeners.forEach(unsubscribe => unsubscribe());
+            aiResponseListeners.clear();
+
+            auth.signOut().then(() => {
+                showNotification('Logout realizado com sucesso', 'success');
+            }).catch(error => {
+                console.error('Error signing out:', error);
+                showNotification('Erro ao fazer logout', 'error');
+            });
+        }
+    });
+
+    window.handleFeedback = handleFeedback;
+    window.regenerateLastMessage = regenerateLastMessage;
+    window.copyToClipboard = copyToClipboard;
 </script>
 
 </body>

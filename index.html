@@ -2205,6 +2205,246 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+
+        /* Botão de áudio */
+        .audio-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .audio-btn:hover {
+            background: var(--hover-color);
+            color: var(--primary-color);
+        }
+
+        .audio-btn.recording {
+            color: var(--error-color);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Modal de gravação de áudio */
+        .audio-recording-modal {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            min-width: 300px;
+            display: none;
+        }
+
+        .audio-recording-modal.active {
+            display: block;
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .recording-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .recording-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .recording-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: var(--background-color);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .recording-indicator {
+            width: 12px;
+            height: 12px;
+            background: var(--error-color);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        .recording-time {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .recording-waveform {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            height: 30px;
+            margin-left: auto;
+        }
+
+        .waveform-bar {
+            width: 3px;
+            background: var(--primary-color);
+            border-radius: 2px;
+            animation: waveform 1s infinite ease-in-out;
+        }
+
+        .waveform-bar:nth-child(1) { animation-delay: 0s; }
+        .waveform-bar:nth-child(2) { animation-delay: 0.1s; }
+        .waveform-bar:nth-child(3) { animation-delay: 0.2s; }
+        .waveform-bar:nth-child(4) { animation-delay: 0.3s; }
+        .waveform-bar:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes waveform {
+            0%, 100% { height: 5px; }
+            50% { height: 25px; }
+        }
+
+        .recording-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .recording-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .cancel-recording {
+            background: var(--background-color);
+            color: var(--text-primary);
+        }
+
+        .cancel-recording:hover {
+            background: var(--hover-color);
+        }
+
+        .send-recording {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .send-recording:hover {
+            background: var(--primary-hover);
+        }
+
+        /* Player de áudio na mensagem */
+        .audio-player {
+            background: var(--background-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            height: 40px;
+        }
+
+        /* Indicador de transcrição */
+        .transcribing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--background-color);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .transcribing-indicator i {
+            color: var(--primary-color);
+        }
+
+        /* Botão de parar gravação */
+        .stop-recording {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--error-color);
+            color: white;
+        }
+
+        .stop-recording:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        /* Preview de áudio */
+        .audio-preview {
+            padding: 15px;
+            background: var(--background-color);
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .audio-preview audio {
+            width: 100%;
+            height: 40px;
+        }
+
+        /* Ocultar waveform quando parado */
+        .recording-waveform.stopped {
+            display: none;
+        }
+
+        /* Indicador quando parado */
+        .recording-indicator.stopped {
+            background: var(--text-secondary);
+            animation: none;
+        }
     </style>
 
 </head>
@@ -2522,6 +2762,10 @@
                     <button class="upload-btn" id="uploadBtn" title="Anexar imagem" type="button">
                         <i class="fas fa-image"></i>
                     </button>
+                    <!-- NOVO: Botão de áudio -->
+                    <button class="audio-btn" id="audioBtn" title="Gravar áudio" type="button">
+                        <i class="fas fa-microphone"></i>
+                    </button>
                     <button class="send-btn" id="sendBtn" disabled type="button">
                         <i class="fas fa-paper-plane"></i>
                     </button>
@@ -2531,7 +2775,50 @@
 
     </div>
 </div>
+<!-- Audio Recording Modal -->
 
+<!-- Audio Recording Modal -->
+<div class="audio-recording-modal" id="audioRecordingModal">
+    <div class="recording-header">
+        <div class="recording-title">
+            <i class="fas fa-microphone"></i>
+            <span id="recordingTitle">Gravando áudio</span>
+        </div>
+    </div>
+    <div class="recording-status">
+        <div class="recording-indicator" id="recordingIndicator"></div>
+        <div class="recording-time" id="recordingTime">00:00</div>
+        <div class="recording-waveform" id="recordingWaveform">
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+            <div class="waveform-bar"></div>
+        </div>
+    </div>
+
+    <!-- Preview de áudio (aparece quando parado) -->
+    <div class="audio-preview" id="audioPreview" style="display: none;">
+        <audio controls id="audioPreviewPlayer"></audio>
+    </div>
+
+    <!-- Botões durante gravação -->
+    <div class="recording-actions" id="recordingActions">
+        <button class="stop-recording" id="stopRecording">
+            <i class="fas fa-stop"></i> Parar Gravação
+        </button>
+    </div>
+
+    <!-- Botões após parar -->
+    <div class="recording-actions" id="stoppedActions" style="display: none;">
+        <button class="cancel-recording" id="cancelRecording">
+            <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button class="send-recording" id="sendRecording">
+            <i class="fas fa-paper-plane"></i> Enviar
+        </button>
+    </div>
+</div>
 <script>
 
     // Firebase Configuration
@@ -2550,7 +2837,11 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     const storage = firebase.storage();
-
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let recordingStartTime = null;
+    let recordingTimer = null;
+    let audioStream = null;
     // DOM Elements
     const loginModal = document.getElementById('loginModal');
     const sidebar = document.getElementById('sidebar');
@@ -2604,6 +2895,11 @@
     const imageQualityValue = document.getElementById('imageQualityValue');
     const searchInput = document.getElementById('searchInput');
     const noResults = document.getElementById('noResults');
+    const audioBtn = document.getElementById('audioBtn');
+    const audioRecordingModal = document.getElementById('audioRecordingModal');
+    const cancelRecording = document.getElementById('cancelRecording');
+    const sendRecording = document.getElementById('sendRecording');
+    const recordingTime = document.getElementById('recordingTime');
 
     // State
     let currentUser = null;
@@ -3712,203 +4008,228 @@
         }
     }
 
-
-    function initializeEventListeners() {
-        sendBtn.addEventListener('click', function() {
-            if (isGenerating) {
-                cancelGeneration().catch(error => {
-                    console.error('Error cancelling generation:', error);
-                    showNotification('Erro ao cancelar geração', 'error');
-                });
-            } else if (!isSending) {
-                sendMessage().catch(error => {
-                    console.error('Error sending message:', error);
-                    showNotification('Erro ao enviar mensagem', 'error');
-                });
-            }
-        });
-
-        messageInput.addEventListener('input', function() {
-            const hasText = this.value.trim().length > 0;
-            const hasImages = uploadedImages.length > 0;
-
-            if (isGenerating) {
-                sendBtn.innerHTML = '<i class="fas fa-stop-circle"></i>';
-                sendBtn.title = 'Cancelar geração';
-                sendBtn.disabled = false;
-                sendBtn.classList.add('cancel');
-            } else {
-                sendBtn.disabled = !(hasText || hasImages) || isSending;
-                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-                sendBtn.title = 'Enviar mensagem';
-                sendBtn.classList.remove('cancel');
+    async function startAudioRecording() {
+        try {
+            // Verificar se já está gravando
+            if (isRecording) {
+                stopAudioRecording();
+                return;
             }
 
-            this.style.height = 'auto';
-            const newHeight = Math.min(this.scrollHeight, 200);
-            this.style.height = newHeight + 'px';
-        });
+            // Solicitar permissão de microfone
+            audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-        messageInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if ((this.value.trim() || uploadedImages.length > 0) && !isGenerating && !isSending) {
-                    sendMessage().catch(error => {
-                        console.error('Error sending message:', error);
-                        showNotification('Erro ao enviar mensagem', 'error');
-                    });
+            // Criar MediaRecorder
+            mediaRecorder = new MediaRecorder(audioStream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
                 }
-            }
-        });
-
-        uploadBtn.addEventListener('click', () => {
-            imageUpload.value = '';
-            imageUpload.click();
-        });
-
-        imageUpload.addEventListener('change', handleImageUpload);
-
-        newChatBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            searchConversations('');
-            createNewConversation().catch(error => {
-                console.error('Error creating new conversation:', error);
-                showNotification('Erro ao criar nova conversa', 'error');
-            });
-        });
-
-        logoutBtn.addEventListener('click', () => {
-            if (confirm('Tem certeza que deseja sair?')) {
-                auth.signOut().then(() => {
-                    showNotification('Logout realizado com sucesso', 'success');
-                }).catch(error => {
-                    console.error('Error signing out:', error);
-                    showNotification('Erro ao fazer logout', 'error');
-                });
-            }
-        });
-
-        settingsBtn.addEventListener('click', () => {
-            settingsModal.classList.add('active');
-        });
-
-        closeSettings.addEventListener('click', () => {
-            settingsModal.classList.remove('active');
-        });
-
-        settingsModal.addEventListener('click', (e) => {
-            if (e.target === settingsModal) {
-                settingsModal.classList.remove('active');
-            }
-        });
-
-        temperatureSlider.addEventListener('input', () => {
-            temperatureValue.textContent = temperatureSlider.value;
-        });
-
-        contextSlider.addEventListener('input', () => {
-            contextValue.textContent = contextSlider.value;
-        });
-
-        speedSlider.addEventListener('input', () => {
-            const speeds = ['Lento', 'Normal', 'Rápido'];
-            speedValue.textContent = speeds[speedSlider.value - 1];
-        });
-
-        imageQualitySlider.addEventListener('input', () => {
-            const qualities = ['Baixa', 'Média', 'Alta'];
-            imageQualityValue.textContent = qualities[imageQualitySlider.value - 1];
-        });
-
-        modelSelect.addEventListener('change', () => {
-            const selectedOption = modelSelect.options[modelSelect.selectedIndex];
-            modelValue.textContent = selectedOption.text;
-        });
-
-        themeSelect.addEventListener('change', () => {
-            const selectedOption = themeSelect.options[themeSelect.selectedIndex];
-            themeValue.textContent = selectedOption.text;
-        });
-
-        languageSelect.addEventListener('change', () => {
-            const selectedOption = languageSelect.options[languageSelect.selectedIndex];
-            languageValue.textContent = selectedOption.text;
-        });
-
-        saveSettings.addEventListener('click', () => {
-            const newPreferences = {
-                theme: themeSelect.value,
-                language: languageSelect.value,
-                model: modelSelect.value,
-                temperature: parseFloat(temperatureSlider.value),
-                contextSize: parseInt(contextSlider.value),
-                responseSpeed: parseInt(speedSlider.value),
-                imageQuality: parseInt(imageQualitySlider.value)
             };
 
-            db.collection('users').doc(currentUser.uid).update({
-                'preferences': newPreferences
-            }).then(() => {
-                userPreferences = newPreferences;
-                applyTheme(newPreferences.theme);
-                settingsModal.classList.remove('active');
-                showNotification('Configurações salvas com sucesso!', 'success');
-            }).catch(error => {
-                console.error('Error saving settings:', error);
-                showNotification('Erro ao salvar configurações', 'error');
+            mediaRecorder.onstop = () => {
+                // Áudio será processado ao enviar
+            };
+
+            // Iniciar gravação
+            mediaRecorder.start();
+            isRecording = true;
+            recordingStartTime = Date.now();
+
+            // Atualizar UI
+            audioBtn.classList.add('recording');
+            audioRecordingModal.classList.add('active');
+
+            // Iniciar timer
+            recordingTimer = setInterval(updateRecordingTime, 100);
+
+            console.log('Gravação de áudio iniciada');
+
+        } catch (error) {
+            console.error('Error starting audio recording:', error);
+
+            if (error.name === 'NotAllowedError') {
+                showNotification('Permissão de microfone negada', 'error');
+            } else if (error.name === 'NotFoundError') {
+                showNotification('Microfone não encontrado', 'error');
+            } else {
+                showNotification('Erro ao iniciar gravação de áudio', 'error');
+            }
+
+            cleanupAudioRecording();
+        }
+    }
+
+    function stopAudioRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+
+        if (recordingTimer) {
+            clearInterval(recordingTimer);
+            recordingTimer = null;
+        }
+
+        isRecording = false;
+        audioBtn.classList.remove('recording');
+    }
+
+    function cancelAudioRecording() {
+        stopAudioRecording();
+        cleanupAudioRecording();
+        audioRecordingModal.classList.remove('active');
+        audioChunks = [];
+        showNotification('Gravação cancelada', 'info');
+    }
+
+    function cleanupAudioRecording() {
+        if (audioStream) {
+            audioStream.getTracks().forEach(track => track.stop());
+            audioStream = null;
+        }
+
+        if (recordingTimer) {
+            clearInterval(recordingTimer);
+            recordingTimer = null;
+        }
+
+        isRecording = false;
+        audioBtn.classList.remove('recording');
+        recordingTime.textContent = '00:00';
+    }
+
+    function updateRecordingTime() {
+        if (!recordingStartTime) return;
+
+        const elapsed = Date.now() - recordingStartTime;
+        const seconds = Math.floor(elapsed / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+
+        recordingTime.textContent =
+            `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+
+        // Limitar gravação a 5 minutos
+        if (elapsed > 300000) {
+            showNotification('Tempo máximo de gravação atingido (5 minutos)', 'warning');
+            sendAudioRecording();
+        }
+    }
+
+    async function sendAudioRecording() {
+        try {
+            stopAudioRecording();
+            audioRecordingModal.classList.remove('active');
+
+            if (audioChunks.length === 0) {
+                showNotification('Nenhum áudio gravado', 'error');
+                cleanupAudioRecording();
+                return;
+            }
+
+            // Criar blob do áudio
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            audioChunks = [];
+
+            // Criar conversa se necessário
+            if (!currentConversationId) {
+                const newConvId = await createNewConversation();
+                if (!newConvId) {
+                    showNotification('Erro ao criar conversa', 'error');
+                    cleanupAudioRecording();
+                    return;
+                }
+            }
+
+            // Upload do áudio para o Storage
+            showNotification('Enviando áudio...', 'info');
+            const storageRef = storage.ref();
+            const audioFileName = `audio_${Date.now()}.webm`;
+            const audioRef = storageRef.child(`users/${currentUser.uid}/audio/${audioFileName}`);
+
+            const snapshot = await audioRef.put(audioBlob);
+            const audioURL = await snapshot.ref.getDownloadURL();
+
+            console.log('Áudio enviado para Storage:', audioURL);
+
+            // Criar mensagem do usuário com áudio
+            const userMessageId = generateId();
+            const userMessage = {
+                id: userMessageId,
+                role: 'user',
+                content: '', // Será preenchido após transcrição
+                audio: {
+                    url: audioURL,
+                    fileName: audioFileName,
+                    contentType: 'audio/webm'
+                },
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                userId: currentUser.uid,
+                status: 'transcribing',
+                conversationId: currentConversationId
+            };
+
+            // Salvar mensagem no Firestore
+            await db.collection('conversations')
+                .doc(currentConversationId)
+                .collection('messages')
+                .doc(userMessageId)
+                .set(userMessage);
+
+            // Exibir mensagem na UI
+            if (welcomeScreen.parentNode === messagesContainer) {
+                welcomeScreen.style.display = 'none';
+            }
+
+            // Adicionar mensagem com indicador de transcrição
+            const tempMessage = {
+                ...userMessage,
+                timestamp: new Date()
+            };
+            addMessageToUI(tempMessage, true);
+
+            // Mostrar indicador de transcrição
+            const messageDiv = document.querySelector(`.message[data-id="${userMessageId}"]`);
+            if (messageDiv) {
+                const contentDiv = messageDiv.querySelector('.message-content');
+                const transcribingDiv = document.createElement('div');
+                transcribingDiv.className = 'transcribing-indicator';
+                transcribingDiv.innerHTML = `
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Transcrevendo áudio...</span>
+            `;
+                contentDiv.insertBefore(transcribingDiv, contentDiv.firstChild);
+            }
+
+            // Criar requisição de transcrição de áudio
+            const audioRequestId = generateId();
+            await db.collection('audio_requests').doc(audioRequestId).set({
+                audioRequestId: audioRequestId,
+                conversationId: currentConversationId,
+                messageId: userMessageId,
+                userId: currentUser.uid,
+                audioUrl: audioURL,
+                fileName: audioFileName,
+                status: 'pending',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
-        });
 
-        mobileMenuBtn.addEventListener('click', () => {
-            sidebar.classList.add('active');
-            sidebarOverlay.classList.add('active');
-        });
+            console.log('Requisição de transcrição criada:', audioRequestId);
 
-        sidebarOverlay.addEventListener('click', () => {
-            sidebar.classList.remove('active');
-            sidebarOverlay.classList.remove('active');
-        });
+            // Aguardar transcrição (será atualizado pelo backend)
+            showNotification('Áudio enviado! Aguardando transcrição...', 'success');
 
-        searchInput.addEventListener('input', (e) => {
-            searchConversations(e.target.value);
-        });
+            // Limpar recursos
+            cleanupAudioRecording();
 
-        document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-                e.preventDefault();
-                searchInput.value = '';
-                searchConversations('');
-                createNewConversation().catch(error => {
-                    console.error('Error creating new conversation:', error);
-                    showNotification('Erro ao criar nova conversa', 'error');
-                });
-            }
-
-            if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
-                e.preventDefault();
-                regenerateLastMessage().catch(error => {
-                    console.error('Error regenerating message:', error);
-                    showNotification('Erro ao gerar novamente', 'error');
-                });
-            }
-
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                searchInput.focus();
-            }
-
-            if (e.key === 'Escape') {
-                if (sidebar.classList.contains('active')) {
-                    sidebar.classList.remove('active');
-                    sidebarOverlay.classList.remove('active');
-                }
-                if (settingsModal.classList.contains('active')) {
-                    settingsModal.classList.remove('active');
-                }
-            }
-        });
-
-        window.addEventListener('resize', handleResize);
+        } catch (error) {
+            console.error('Error sending audio recording:', error);
+            showNotification('Erro ao enviar áudio: ' + error.message, 'error');
+            cleanupAudioRecording();
+        }
     }
 
 
@@ -4141,23 +4462,30 @@
 
             if (message.role === 'user') {
                 messageDiv.innerHTML = `
-                <div class="message-avatar" title="Você">${avatarText}</div>
-                <div class="message-content">
-                    ${hasAudio ? `
-                        <div class="audio-player">
-                            <audio controls src="${message.audio.url}"></audio>
-                        </div>` : ''}
-                    ${hasContent ? `<div class="message-text">${formatMessageContent(message.content)}</div>` : ''}
-                    ${hasImages ?
+        <div class="message-avatar" title="Você">${avatarText}</div>
+        <div class="message-content">
+            ${hasAudio ? `
+                <div class="audio-player">
+                    <audio controls src="${message.audio.url}"></audio>
+                </div>
+                ${message.status === 'transcribing' ? `
+                    <div class="transcribing-indicator">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Transcrevendo áudio...</span>
+                    </div>
+                ` : ''}
+            ` : ''}
+            ${hasContent ? `<div class="message-text">${formatMessageContent(message.content)}</div>` : ''}
+            ${hasImages ?
                     message.images.map(img =>
                         `<img src="${img.url}" alt="${img.name}" class="message-image" loading="lazy">`
                     ).join('') : ''}
-                    <div class="message-time">
-                        <i class="far fa-clock"></i> ${time}
-                    </div>
-                </div>
-            `;
-            } else {
+            <div class="message-time">
+                <i class="far fa-clock"></i> ${time}
+            </div>
+        </div>
+    `;
+            }else {
                 messageDiv.innerHTML = `
                 <div class="message-avatar" title="Amazônia 1 AI">${avatarText}</div>
                 <div class="message-content">
@@ -4670,6 +4998,540 @@
             });
         }
     });
+
+    // Adicionar dentro da função initializeEventListeners()
+
+    audioBtn.addEventListener('click', () => {
+        if (isRecording) {
+            stopAudioRecording();
+        } else {
+            startAudioRecording();
+        }
+    });
+
+    cancelRecording.addEventListener('click', cancelAudioRecording);
+
+    sendRecording.addEventListener('click', sendAudioRecording);
+
+    // Fechar modal ao clicar fora
+    audioRecordingModal.addEventListener('click', (e) => {
+        if (e.target === audioRecordingModal) {
+            cancelAudioRecording();
+        }
+    });
+
+
+
+
+
+    function initializeEventListeners() {
+        sendBtn.addEventListener('click', function() {
+            if (isGenerating) {
+                cancelGeneration().catch(error => {
+                    console.error('Error cancelling generation:', error);
+                    showNotification('Erro ao cancelar geração', 'error');
+                });
+            } else if (!isSending) {
+                sendMessage().catch(error => {
+                    console.error('Error sending message:', error);
+                    showNotification('Erro ao enviar mensagem', 'error');
+                });
+            }
+        });
+
+        messageInput.addEventListener('input', function() {
+            const hasText = this.value.trim().length > 0;
+            const hasImages = uploadedImages.length > 0;
+
+            if (isGenerating) {
+                sendBtn.innerHTML = '<i class="fas fa-stop-circle"></i>';
+                sendBtn.title = 'Cancelar geração';
+                sendBtn.disabled = false;
+                sendBtn.classList.add('cancel');
+            } else {
+                sendBtn.disabled = !(hasText || hasImages) || isSending;
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                sendBtn.title = 'Enviar mensagem';
+                sendBtn.classList.remove('cancel');
+            }
+
+            this.style.height = 'auto';
+            const newHeight = Math.min(this.scrollHeight, 200);
+            this.style.height = newHeight + 'px';
+        });
+
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if ((this.value.trim() || uploadedImages.length > 0) && !isGenerating && !isSending) {
+                    sendMessage().catch(error => {
+                        console.error('Error sending message:', error);
+                        showNotification('Erro ao enviar mensagem', 'error');
+                    });
+                }
+            }
+        });
+
+        uploadBtn.addEventListener('click', () => {
+            imageUpload.value = '';
+            imageUpload.click();
+        });
+
+        imageUpload.addEventListener('change', handleImageUpload);
+
+        // ============================================
+        // LISTENERS DE ÁUDIO
+        // ============================================
+        audioBtn.addEventListener('click', () => {
+            if (isRecording) {
+                stopAudioRecording();
+            } else {
+                startAudioRecording();
+            }
+        });
+
+        // NOVO: Botão de parar gravação
+        const stopRecordingBtn = document.getElementById('stopRecording');
+        if (stopRecordingBtn) {
+            stopRecordingBtn.addEventListener('click', () => {
+                stopAudioRecording();
+            });
+        }
+
+        cancelRecording.addEventListener('click', cancelAudioRecording);
+
+        sendRecording.addEventListener('click', sendAudioRecording);
+
+        // Fechar modal ao clicar fora
+        audioRecordingModal.addEventListener('click', (e) => {
+            if (e.target === audioRecordingModal) {
+                cancelAudioRecording();
+            }
+        });
+        // ============================================
+        // FIM DOS LISTENERS DE ÁUDIO
+        // ============================================
+
+        newChatBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            searchConversations('');
+            createNewConversation().catch(error => {
+                console.error('Error creating new conversation:', error);
+                showNotification('Erro ao criar nova conversa', 'error');
+            });
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('Tem certeza que deseja sair?')) {
+                // Limpar todos os listeners
+                if (messageListener) messageListener();
+                if (conversationsListener) conversationsListener();
+                aiResponseListeners.forEach(unsubscribe => unsubscribe());
+                aiResponseListeners.clear();
+
+                auth.signOut().then(() => {
+                    showNotification('Logout realizado com sucesso', 'success');
+                }).catch(error => {
+                    console.error('Error signing out:', error);
+                    showNotification('Erro ao fazer logout', 'error');
+                });
+            }
+        });
+
+        settingsBtn.addEventListener('click', () => {
+            settingsModal.classList.add('active');
+        });
+
+        closeSettings.addEventListener('click', () => {
+            settingsModal.classList.remove('active');
+        });
+
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                settingsModal.classList.remove('active');
+            }
+        });
+
+        temperatureSlider.addEventListener('input', () => {
+            temperatureValue.textContent = temperatureSlider.value;
+        });
+
+        contextSlider.addEventListener('input', () => {
+            contextValue.textContent = contextSlider.value;
+        });
+
+        speedSlider.addEventListener('input', () => {
+            const speeds = ['Lento', 'Normal', 'Rápido'];
+            speedValue.textContent = speeds[speedSlider.value - 1];
+        });
+
+        imageQualitySlider.addEventListener('input', () => {
+            const qualities = ['Baixa', 'Média', 'Alta'];
+            imageQualityValue.textContent = qualities[imageQualitySlider.value - 1];
+        });
+
+        modelSelect.addEventListener('change', () => {
+            const selectedOption = modelSelect.options[modelSelect.selectedIndex];
+            modelValue.textContent = selectedOption.text;
+        });
+
+        themeSelect.addEventListener('change', () => {
+            const selectedOption = themeSelect.options[themeSelect.selectedIndex];
+            themeValue.textContent = selectedOption.text;
+        });
+
+        languageSelect.addEventListener('change', () => {
+            const selectedOption = languageSelect.options[languageSelect.selectedIndex];
+            languageValue.textContent = selectedOption.text;
+        });
+
+        saveSettings.addEventListener('click', () => {
+            const newPreferences = {
+                theme: themeSelect.value,
+                language: languageSelect.value,
+                model: modelSelect.value,
+                temperature: parseFloat(temperatureSlider.value),
+                contextSize: parseInt(contextSlider.value),
+                responseSpeed: parseInt(speedSlider.value),
+                imageQuality: parseInt(imageQualitySlider.value)
+            };
+
+            db.collection('users').doc(currentUser.uid).update({
+                'preferences': newPreferences
+            }).then(() => {
+                userPreferences = newPreferences;
+                applyTheme(newPreferences.theme);
+                settingsModal.classList.remove('active');
+                showNotification('Configurações salvas com sucesso!', 'success');
+            }).catch(error => {
+                console.error('Error saving settings:', error);
+                showNotification('Erro ao salvar configurações', 'error');
+            });
+        });
+
+        mobileMenuBtn.addEventListener('click', () => {
+            sidebar.classList.add('active');
+            sidebarOverlay.classList.add('active');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            searchConversations(e.target.value);
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                searchInput.value = '';
+                searchConversations('');
+                createNewConversation().catch(error => {
+                    console.error('Error creating new conversation:', error);
+                    showNotification('Erro ao criar nova conversa', 'error');
+                });
+            }
+
+            if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+                e.preventDefault();
+                regenerateLastMessage().catch(error => {
+                    console.error('Error regenerating message:', error);
+                    showNotification('Erro ao gerar novamente', 'error');
+                });
+            }
+
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+
+            if (e.key === 'Escape') {
+                if (sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                }
+                if (settingsModal.classList.contains('active')) {
+                    settingsModal.classList.remove('active');
+                }
+                if (audioRecordingModal.classList.contains('active')) {
+                    cancelAudioRecording();
+                }
+            }
+        });
+
+        window.addEventListener('resize', handleResize);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Variável para armazenar o blob de áudio
+    let recordedAudioBlob = null;
+
+    async function startAudioRecording() {
+        try {
+            // Verificar se já está gravando
+            if (isRecording) {
+                stopAudioRecording();
+                return;
+            }
+
+            // Solicitar permissão de microfone
+            audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            // Criar MediaRecorder
+            mediaRecorder = new MediaRecorder(audioStream);
+            audioChunks = [];
+            recordedAudioBlob = null;
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                // Criar blob quando parar
+                recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
+                // Mostrar preview do áudio
+                const audioPreview = document.getElementById('audioPreview');
+                const audioPlayer = document.getElementById('audioPreviewPlayer');
+                const audioUrl = URL.createObjectURL(recordedAudioBlob);
+                audioPlayer.src = audioUrl;
+                audioPreview.style.display = 'block';
+
+                // Atualizar UI para estado "parado"
+                document.getElementById('recordingTitle').textContent = 'Gravação finalizada';
+                document.getElementById('recordingIndicator').classList.add('stopped');
+                document.getElementById('recordingWaveform').classList.add('stopped');
+                document.getElementById('recordingActions').style.display = 'none';
+                document.getElementById('stoppedActions').style.display = 'flex';
+            };
+
+            // Iniciar gravação
+            mediaRecorder.start();
+            isRecording = true;
+            recordingStartTime = Date.now();
+
+            // Atualizar UI para estado "gravando"
+            audioBtn.classList.add('recording');
+            audioRecordingModal.classList.add('active');
+            document.getElementById('recordingTitle').textContent = 'Gravando áudio';
+            document.getElementById('recordingIndicator').classList.remove('stopped');
+            document.getElementById('recordingWaveform').classList.remove('stopped');
+            document.getElementById('audioPreview').style.display = 'none';
+            document.getElementById('recordingActions').style.display = 'flex';
+            document.getElementById('stoppedActions').style.display = 'none';
+
+            // Iniciar timer
+            recordingTimer = setInterval(updateRecordingTime, 100);
+
+            console.log('Gravação de áudio iniciada');
+
+        } catch (error) {
+            console.error('Error starting audio recording:', error);
+
+            if (error.name === 'NotAllowedError') {
+                showNotification('Permissão de microfone negada', 'error');
+            } else if (error.name === 'NotFoundError') {
+                showNotification('Microfone não encontrado', 'error');
+            } else {
+                showNotification('Erro ao iniciar gravação de áudio', 'error');
+            }
+
+            cleanupAudioRecording();
+        }
+    }
+
+    function stopAudioRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+
+        if (recordingTimer) {
+            clearInterval(recordingTimer);
+            recordingTimer = null;
+        }
+
+        isRecording = false;
+        audioBtn.classList.remove('recording');
+    }
+
+    function cancelAudioRecording() {
+        stopAudioRecording();
+        cleanupAudioRecording();
+        audioRecordingModal.classList.remove('active');
+        audioChunks = [];
+        recordedAudioBlob = null;
+
+        // Limpar preview
+        const audioPlayer = document.getElementById('audioPreviewPlayer');
+        if (audioPlayer.src) {
+            URL.revokeObjectURL(audioPlayer.src);
+            audioPlayer.src = '';
+        }
+
+        showNotification('Gravação cancelada', 'info');
+    }
+
+    function cleanupAudioRecording() {
+        if (audioStream) {
+            audioStream.getTracks().forEach(track => track.stop());
+            audioStream = null;
+        }
+
+        if (recordingTimer) {
+            clearInterval(recordingTimer);
+            recordingTimer = null;
+        }
+
+        isRecording = false;
+        audioBtn.classList.remove('recording');
+        recordingTime.textContent = '00:00';
+
+        // Resetar UI
+        document.getElementById('recordingIndicator').classList.remove('stopped');
+        document.getElementById('recordingWaveform').classList.remove('stopped');
+    }
+
+    function updateRecordingTime() {
+        if (!recordingStartTime) return;
+
+        const elapsed = Date.now() - recordingStartTime;
+        const seconds = Math.floor(elapsed / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+
+        recordingTime.textContent =
+            `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+
+        // Limitar gravação a 5 minutos
+        if (elapsed > 300000) {
+            showNotification('Tempo máximo de gravação atingido (5 minutos)', 'warning');
+            stopAudioRecording();
+        }
+    }
+
+    async function sendAudioRecording() {
+        try {
+            audioRecordingModal.classList.remove('active');
+
+            if (!recordedAudioBlob) {
+                showNotification('Nenhum áudio gravado', 'error');
+                cleanupAudioRecording();
+                return;
+            }
+
+            // Criar conversa se necessário
+            if (!currentConversationId) {
+                const newConvId = await createNewConversation();
+                if (!newConvId) {
+                    showNotification('Erro ao criar conversa', 'error');
+                    cleanupAudioRecording();
+                    return;
+                }
+            }
+
+            // Upload do áudio para o Storage
+            showNotification('Enviando áudio...', 'info');
+            const storageRef = storage.ref();
+            const audioFileName = `audio_${Date.now()}.webm`;
+            const audioRef = storageRef.child(`users/${currentUser.uid}/audio/${audioFileName}`);
+
+            const snapshot = await audioRef.put(recordedAudioBlob);
+            const audioURL = await snapshot.ref.getDownloadURL();
+
+            console.log('Áudio enviado para Storage:', audioURL);
+
+            // Criar mensagem do usuário com áudio
+            const userMessageId = generateId();
+            const userMessage = {
+                id: userMessageId,
+                role: 'user',
+                content: '', // Será preenchido após transcrição
+                audio: {
+                    url: audioURL,
+                    fileName: audioFileName,
+                    contentType: 'audio/webm'
+                },
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                userId: currentUser.uid,
+                status: 'transcribing',
+                conversationId: currentConversationId
+            };
+
+            // Salvar mensagem no Firestore
+            await db.collection('conversations')
+                .doc(currentConversationId)
+                .collection('messages')
+                .doc(userMessageId)
+                .set(userMessage);
+
+            // Exibir mensagem na UI
+            if (welcomeScreen.parentNode === messagesContainer) {
+                welcomeScreen.style.display = 'none';
+            }
+
+            // Adicionar mensagem com indicador de transcrição
+            const tempMessage = {
+                ...userMessage,
+                timestamp: new Date()
+            };
+            addMessageToUI(tempMessage, true);
+
+            // Criar requisição de transcrição de áudio
+            const audioRequestId = generateId();
+            await db.collection('audio_requests').doc(audioRequestId).set({
+                audioRequestId: audioRequestId,
+                conversationId: currentConversationId,
+                messageId: userMessageId,
+                userId: currentUser.uid,
+                audioUrl: audioURL,
+                fileName: audioFileName,
+                status: 'pending',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            console.log('Requisição de transcrição criada:', audioRequestId);
+
+            // Aguardar transcrição (será atualizado pelo backend)
+            showNotification('Áudio enviado! Aguardando transcrição...', 'success');
+
+            // Limpar recursos
+            cleanupAudioRecording();
+            recordedAudioBlob = null;
+            audioChunks = [];
+
+            // Limpar preview
+            const audioPlayer = document.getElementById('audioPreviewPlayer');
+            if (audioPlayer.src) {
+                URL.revokeObjectURL(audioPlayer.src);
+                audioPlayer.src = '';
+            }
+
+        } catch (error) {
+            console.error('Error sending audio recording:', error);
+            showNotification('Erro ao enviar áudio: ' + error.message, 'error');
+            cleanupAudioRecording();
+        }
+    }
+
+
 
     window.handleFeedback = handleFeedback;
     window.regenerateLastMessage = regenerateLastMessage;

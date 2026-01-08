@@ -2080,9 +2080,6 @@
             align-items: center;
         }
 
-        .dark-theme .message-actions { border-top-color: rgba(255, 255, 255, 0.08); }
-        .message.user .message-actions { border-top-color: rgba(255, 255, 255, 0.2); }
-
         .action-icon-btn.small {
             padding: 6px 12px;
             font-size: 12px;
@@ -2444,6 +2441,506 @@
         .recording-indicator.stopped {
             background: var(--text-secondary);
             animation: none;
+        }
+
+        /* =========================================== */
+        /* MELHORIAS ESPECÍFICAS PARA MOBILE */
+        /* =========================================== */
+
+        @media (max-width: 768px) {
+            /* Ajustes gerais */
+            body {
+                overflow: hidden;
+                height: 100vh;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            /* Login Modal melhorado para mobile */
+            .login-modal {
+                padding: 16px;
+            }
+
+            .login-content {
+                max-width: 100%;
+                height: auto;
+                max-height: 90vh;
+                overflow-y: auto;
+                border-radius: var(--radius-lg);
+            }
+
+            .login-header {
+                padding: 30px 24px 20px;
+            }
+
+            .login-body {
+                padding: 24px;
+            }
+
+            /* App Container em mobile */
+            .app-container {
+                flex-direction: column;
+            }
+
+            /* Sidebar mobile - ocupar mais espaço */
+            .sidebar {
+                width: 85%;
+                max-width: 320px;
+                box-shadow: 10px 0 30px rgba(0, 0, 0, 0.15);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            /* Chat Header mobile */
+            .chat-header {
+                padding: 12px 16px;
+                height: 64px;
+            }
+
+            .chat-title {
+                font-size: 16px;
+                margin-right: 8px;
+            }
+
+            .action-btn {
+                width: 36px;
+                height: 36px;
+            }
+
+            /* Messages container mobile */
+            .messages-container {
+                padding: 16px;
+                gap: 16px;
+            }
+
+            .message.assistant {
+                max-width: 90%;
+            }
+
+            .message.user {
+                max-width: 85%;
+            }
+
+            .message-avatar {
+                width: 32px;
+                height: 32px;
+                min-width: 32px;
+                font-size: 12px;
+            }
+
+            .message-content {
+                padding: 12px 16px;
+                border-radius: 18px;
+            }
+
+            .message-text {
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            /* Input area mobile */
+            .input-area {
+                padding: 16px;
+            }
+
+            .input-container {
+                padding: 6px;
+                border-radius: var(--radius-md);
+            }
+
+            .text-input {
+                min-height: 48px;
+                padding: 14px 50px 14px 12px;
+                font-size: 14px;
+            }
+
+            .input-actions {
+                right: 12px;
+                bottom: 12px;
+            }
+
+            .upload-btn, .send-btn, .audio-btn {
+                width: 32px;
+                height: 32px;
+            }
+
+            /* Image preview mobile */
+            .preview-item {
+                width: 70px;
+                height: 70px;
+            }
+
+            /* Welcome screen mobile */
+            .welcome-screen {
+                padding: 24px 16px;
+            }
+
+            .welcome-icon {
+                width: 80px;
+                height: 80px;
+                border-radius: 20px;
+                font-size: 36px;
+            }
+
+            .welcome-title {
+                font-size: 28px;
+                text-align: center;
+            }
+
+            .welcome-subtitle {
+                font-size: 16px;
+                padding: 0 8px;
+            }
+
+            .capabilities {
+                gap: 12px;
+            }
+
+            .capability-item {
+                padding: 16px;
+            }
+
+            /* Settings modal mobile */
+            .settings-content {
+                width: 95%;
+                max-height: 85vh;
+                margin: 0;
+            }
+
+            .settings-header {
+                padding: 20px;
+            }
+
+            .settings-body {
+                padding: 20px;
+            }
+
+            /* Audio recording modal mobile */
+            .audio-recording-modal {
+                bottom: 80px;
+                right: 16px;
+                left: 16px;
+                width: auto;
+                min-width: unset;
+            }
+
+            /* Typing indicator mobile */
+            #typingIndicator .message-content {
+                padding: 12px 14px;
+            }
+
+            /* Message actions mobile */
+            .message-actions {
+                gap: 4px;
+            }
+
+            .action-icon-btn.small {
+                padding: 5px 10px;
+                font-size: 11px;
+                height: 28px;
+                gap: 4px;
+            }
+
+            .action-icon-btn.small i {
+                font-size: 11px;
+            }
+
+            /* Botão de excluir mensagem mobile */
+            .message.user .action-icon-btn.delete-btn {
+                width: 24px;
+                height: 24px;
+                top: -6px;
+                right: -6px;
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            /* Ajustes para telas muito pequenas */
+            .sidebar {
+                width: 90%;
+            }
+
+            .messages-container {
+                padding: 12px;
+            }
+
+            .message.assistant,
+            .message.user {
+                max-width: 95%;
+            }
+
+            .message-avatar {
+                width: 28px;
+                height: 28px;
+                min-width: 28px;
+            }
+
+            .message-content {
+                padding: 10px 14px;
+            }
+
+            .input-area {
+                padding: 12px;
+            }
+
+            .text-input {
+                min-height: 44px;
+                padding: 12px 46px 12px 10px;
+            }
+
+            /* Chat header muito pequeno */
+            .chat-header {
+                padding: 10px 12px;
+                height: 56px;
+            }
+
+            .chat-title {
+                font-size: 15px;
+            }
+
+            /* Audio modal muito pequeno */
+            .audio-recording-modal {
+                bottom: 70px;
+                right: 10px;
+                left: 10px;
+                padding: 16px;
+            }
+
+            /* Welcome screen muito pequeno */
+            .welcome-title {
+                font-size: 24px;
+            }
+
+            .welcome-subtitle {
+                font-size: 14px;
+            }
+
+            .capability-item {
+                padding: 12px;
+            }
+
+            .capability-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+        }
+
+        /* Melhorias para orientação paisagem em mobile */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .login-content {
+                max-height: 80vh;
+            }
+
+            .messages-container {
+                max-height: 60vh;
+            }
+
+            .input-area {
+                padding: 10px 16px;
+            }
+
+            .text-input {
+                min-height: 40px;
+                max-height: 100px;
+            }
+        }
+
+        /* Melhorias para tablets */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .sidebar {
+                width: 280px;
+            }
+
+            .messages-container {
+                padding: 20px;
+            }
+
+            .message.assistant {
+                max-width: 80%;
+            }
+
+            .message.user {
+                max-width: 75%;
+            }
+        }
+
+        /* Ajustes para safe areas (notch) em iPhones */
+        @supports (padding: max(0px)) {
+            .input-area,
+            .chat-header {
+                padding-left: max(16px, env(safe-area-inset-left));
+                padding-right: max(16px, env(safe-area-inset-right));
+            }
+
+            .input-area {
+                padding-bottom: max(16px, env(safe-area-inset-bottom));
+            }
+
+            .messages-container {
+                padding-left: max(16px, env(safe-area-inset-left));
+                padding-right: max(16px, env(safe-area-inset-right));
+            }
+        }
+
+        /* Melhorias de acessibilidade para touch */
+        @media (hover: none) and (pointer: coarse) {
+            .action-btn,
+            .upload-btn,
+            .send-btn,
+            .audio-btn,
+            .action-icon-btn,
+            .conversation-item,
+            .new-chat-btn {
+                min-height: 44px;
+                min-width: 44px;
+            }
+
+            .conversation-item {
+                padding: 16px;
+            }
+
+            /* Aumentar área de toque nos botões de mensagem */
+            .message-actions .action-icon-btn.small {
+                min-height: 36px;
+                padding: 8px 14px;
+            }
+
+            /* Melhor feedback visual para toque */
+            .action-btn:active,
+            .upload-btn:active,
+            .send-btn:active,
+            .audio-btn:active {
+                transform: scale(0.95);
+                transition: transform 0.1s ease;
+            }
+        }
+
+        /* Prevenir zoom em inputs em iOS */
+        @media screen and (max-width: 768px) {
+            input,
+            textarea,
+            select {
+                font-size: 16px !important; /* Prevenir zoom em iOS */
+            }
+
+            .text-input {
+                font-size: 16px !important;
+            }
+        }
+
+        /* Melhorar scroll em mobile */
+        .messages-container {
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+
+        /* Ajustes para o modal de gravação em dispositivos com altura limitada */
+        @media (max-height: 700px) {
+            .audio-recording-modal {
+                bottom: 60px;
+            }
+
+            .recording-status {
+                padding: 10px;
+            }
+
+            .recording-time {
+                font-size: 20px;
+            }
+        }
+
+        /* Ajustes específicos para o botão de áudio no input */
+        .audio-btn {
+            position: relative;
+        }
+
+        .audio-btn.recording::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background: var(--error-color);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Melhorias na visualização de imagens em mobile */
+        .message-image {
+            max-width: 100% !important;
+            max-height: 200px !important;
+            cursor: pointer;
+        }
+
+        /* Modal de imagem em tela cheia (para toque em imagens) */
+        .image-fullscreen-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .image-fullscreen-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .image-fullscreen-modal img {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+        }
+
+        /* Ajustes para o teclado virtual em mobile */
+        .keyboard-open .messages-container {
+            max-height: 50vh;
+            transition: max-height 0.3s ease;
+        }
+
+        /* Melhorar legibilidade em telas pequenas */
+        @media (max-width: 768px) {
+            .message-text {
+                text-align: justify;
+                hyphens: auto;
+            }
+
+            .message-text code,
+            .message-text pre {
+                font-size: 12px;
+            }
+        }
+
+        /* Ajustes para o estado de carregamento em mobile */
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--text-tertiary);
+        }
+
+        .loading-indicator i {
+            animation: spin 1s linear infinite;
+            font-size: 20px;
+        }
+
+        /* Feedback visual para ações de toque */
+        .touch-feedback:active {
+            opacity: 0.7;
+            transform: scale(0.98);
         }
     </style>
 
@@ -2819,6 +3316,7 @@
         </button>
     </div>
 </div>
+
 <script>
 
     // Firebase Configuration
@@ -2837,11 +3335,16 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     const storage = firebase.storage();
+
+    // Variáveis de gravação de áudio
     let mediaRecorder = null;
     let audioChunks = [];
     let recordingStartTime = null;
     let recordingTimer = null;
     let audioStream = null;
+    let recordedAudioBlob = null;
+    let isRecording = false;
+
     // DOM Elements
     const loginModal = document.getElementById('loginModal');
     const sidebar = document.getElementById('sidebar');
@@ -2866,6 +3369,11 @@
     const userName = document.getElementById('userName');
     const userEmail = document.getElementById('userEmail');
     const currentChatTitle = document.getElementById('currentChatTitle');
+    const searchInput = document.getElementById('searchInput');
+    const noResults = document.getElementById('noResults');
+    const audioBtn = document.getElementById('audioBtn');
+    const audioRecordingModal = document.getElementById('audioRecordingModal');
+    const recordingTime = document.getElementById('recordingTime');
 
     // Login/Register elements
     const loginForm = document.getElementById('loginForm');
@@ -2893,30 +3401,21 @@
     const languageValue = document.getElementById('languageValue');
     const speedValue = document.getElementById('speedValue');
     const imageQualityValue = document.getElementById('imageQualityValue');
-    const searchInput = document.getElementById('searchInput');
-    const noResults = document.getElementById('noResults');
-    const audioBtn = document.getElementById('audioBtn');
-    const audioRecordingModal = document.getElementById('audioRecordingModal');
-    const cancelRecording = document.getElementById('cancelRecording');
-    const sendRecording = document.getElementById('sendRecording');
-    const recordingTime = document.getElementById('recordingTime');
 
     // State
     let currentUser = null;
     let currentConversationId = null;
     let userPreferences = null;
     let uploadedImages = [];
+    let uploadedAudio = null; // NOVO: armazenar áudio gravado
     let isSending = false;
     let conversationListener = null;
     let messageListener = null;
     let conversationsListener = null;
     let currentRequestId = null;
     let isGenerating = false;
-    let currentAudioRecorder = null;
-    let isRecording = false;
     let initialLoadComplete = false;
     let isCreatingConversation = false;
-    let aiResponseListener = null;
     let displayedMessageIds = new Set();
     let aiResponseListeners = new Map();
 
@@ -3312,7 +3811,6 @@
         try {
             console.log('addConversationToUI: Adicionando conversa', id, conversation.title);
 
-            // Verificar se já existe
             const existingItem = document.querySelector(`.conversation-item[data-id="${id}"]`);
             if (existingItem) {
                 console.log('addConversationToUI: Conversa já existe, removendo...');
@@ -3324,7 +3822,6 @@
             conversationItem.dataset.id = id;
             conversationItem.dataset.title = (conversation.title || 'Nova Conversa').toLowerCase();
 
-            // Formatar tempo
             let timeStr = '';
             try {
                 if (conversation.updatedAt) {
@@ -3364,9 +3861,7 @@
             </div>
         `;
 
-            // Adicionar evento de clique na conversa (exceto nos botões)
             conversationItem.addEventListener('click', (e) => {
-                // Não disparar se clicou nos botões de ação
                 if (e.target.closest('.conversation-actions')) {
                     return;
                 }
@@ -3374,7 +3869,6 @@
                 loadConversation(id);
             });
 
-            // Adicionar eventos dos botões
             const favoriteBtn = conversationItem.querySelector('.favorite-btn');
             if (favoriteBtn) {
                 favoriteBtn.addEventListener('click', (e) => {
@@ -3394,7 +3888,6 @@
                 });
             }
 
-            // Adicionar à lista
             conversationsList.appendChild(conversationItem);
 
             console.log('addConversationToUI: Conversa adicionada com sucesso:', id);
@@ -3403,11 +3896,11 @@
             console.error('addConversationToUI: Erro ao adicionar conversa:', id, error);
         }
     }
+
     async function loadConversation(conversationId) {
         try {
             console.log('loadConversation chamado para:', conversationId);
 
-            // 1. Limpar listeners anteriores
             if (messageListener) {
                 console.log('Removendo listener anterior de mensagens');
                 messageListener();
@@ -3417,14 +3910,9 @@
             aiResponseListeners.forEach(unsubscribe => unsubscribe());
             aiResponseListeners.clear();
 
-            // 2. Atualizar estado
             currentConversationId = conversationId;
-
-            // IMPORTANTE: Limpar o Set APÓS carregar as mensagens históricas
-            // Vamos limpar agora, mas só vamos adicionar IDs depois de exibi-las
             displayedMessageIds.clear();
 
-            // 3. Estado de loading
             messagesContainer.innerHTML = `
             <div class="empty-state">
                 <div class="loading"><i class="fas fa-spinner fa-spin"></i></div>
@@ -3433,7 +3921,6 @@
         `;
             welcomeScreen.style.display = 'none';
 
-            // 4. Carregar metadados da conversa
             const conversationDoc = await db.collection('conversations').doc(conversationId).get();
             if (!conversationDoc.exists) {
                 console.error('Conversa não encontrada:', conversationId);
@@ -3443,7 +3930,6 @@
             const conversation = conversationDoc.data();
             currentChatTitle.textContent = conversation.title || 'Nova Conversa';
 
-            // 5. Carregar mensagens históricas
             const messagesQuery = db.collection('conversations')
                 .doc(conversationId)
                 .collection('messages')
@@ -3453,58 +3939,71 @@
 
             console.log('Total de mensagens históricas encontradas:', messagesSnapshot.size);
 
-            // Limpar container
             messagesContainer.innerHTML = '';
 
             if (messagesSnapshot.empty) {
                 welcomeScreen.style.display = 'flex';
                 messagesContainer.appendChild(welcomeScreen);
             } else {
-                // Primeiro: adicionar TODAS as mensagens ao DOM
                 messagesSnapshot.docs.forEach(doc => {
                     const messageData = doc.data();
-                    const message = {
+                    const historyMessage = {
                         id: doc.id,
                         ...messageData,
                         timestamp: messageData.timestamp?.toDate?.() || new Date()
                     };
 
-                    // Adicionar ao DOM (sem animação)
-                    addMessageToUI(message, false);
+                    addMessageToUI(historyMessage, false);
                 });
 
-                // Só agora, depois de todas exibidas, marcar como exibidas
                 messagesSnapshot.docs.forEach(doc => {
                     displayedMessageIds.add(doc.id);
                 });
 
                 console.log('Mensagens históricas exibidas e marcadas:', displayedMessageIds.size);
 
-                // Scroll para o final
                 setTimeout(() => scrollToBottom(), 100);
             }
 
-            // 6. Configurar listener apenas para NOVAS mensagens (futuras)
             messageListener = messagesQuery.onSnapshot((snapshot) => {
                 snapshot.docChanges().forEach((change) => {
                     if (change.type === 'added') {
                         const doc = change.doc;
                         const messageId = doc.id;
 
-                        // Ignorar mensagens já exibidas (ou seja, as do carregamento inicial)
                         if (displayedMessageIds.has(messageId)) {
                             return;
                         }
 
                         const messageData = doc.data();
-                        const message = {
+                        const newMessage = {
                             id: messageId,
                             ...messageData,
                             timestamp: messageData.timestamp?.toDate?.() || new Date()
                         };
 
                         displayedMessageIds.add(messageId);
-                        addMessageToUI(message, true); // com animação
+                        addMessageToUI(newMessage, true);
+                    } else if (change.type === 'modified') {
+                        const doc = change.doc;
+                        const messageId = doc.id;
+                        const messageData = doc.data();
+
+                        const messageDiv = document.querySelector(`.message[data-id="${messageId}"]`);
+                        if (messageDiv) {
+                            const updatedMessage = {
+                                id: messageId,
+                                ...messageData,
+                                timestamp: messageData.timestamp?.toDate?.() || new Date()
+                            };
+
+                            messageDiv.remove();
+                            displayedMessageIds.delete(messageId);
+                            addMessageToUI(updatedMessage, false);
+                            displayedMessageIds.add(messageId);
+
+                            console.log('Mensagem atualizada:', messageId);
+                        }
                     }
                 });
 
@@ -3514,7 +4013,6 @@
                 showNotification('Erro ao ouvir novas mensagens', 'error');
             });
 
-            // 7. Atualizações finais de UI
             updateActiveConversation();
 
             if (window.innerWidth <= 768) {
@@ -3535,6 +4033,7 @@
             messagesContainer.appendChild(welcomeScreen);
         }
     }
+
     function updateActiveConversation() {
         document.querySelectorAll('.conversation-item').forEach(item => {
             item.classList.remove('active');
@@ -3553,6 +4052,19 @@
             return downloadURL;
         } catch (error) {
             console.error('Error uploading image:', error);
+            throw error;
+        }
+    }
+
+    async function uploadAudioToStorage(blob, fileName) {
+        try {
+            const storageRef = storage.ref();
+            const audioRef = storageRef.child(`users/${currentUser.uid}/audio/${fileName}`);
+            const snapshot = await audioRef.put(blob);
+            const downloadURL = await snapshot.ref.getDownloadURL();
+            return downloadURL;
+        } catch (error) {
+            console.error('Error uploading audio:', error);
             throw error;
         }
     }
@@ -3760,33 +4272,31 @@
             actionsDiv.className = 'message-actions';
 
             actionsDiv.innerHTML = `
-      <button class="action-icon-btn small ${message.feedback === 'like' ? 'active' : ''}"
-              onclick="handleFeedback('${message.id}', 'like')"
-              title="Gostei da resposta">
-        <i class="fas fa-thumbs-up"></i>
-
-      </button>
-      <button class="action-icon-btn small ${message.feedback === 'dislike' ? 'active' : ''}"
-              onclick="handleFeedback('${message.id}', 'dislike')"
-              title="Não gostei da resposta">
-        <i class="fas fa-thumbs-down"></i>
-      </button>
-      <button class="action-icon-btn small"
-              onclick="regenerateLastMessage()"
-              title="Gerar nova resposta">
-        <i class="fas fa-redo"></i>
-      </button>
-      <button class="action-icon-btn small"
-              onclick="copyToClipboard(\`${message.content.replace(/`/g, '\\`')}\`)"
-              title="Copiar resposta">
-        <i class="fas fa-copy"></i>
-      </button>
-    `;
+            <button class="action-icon-btn small ${message.feedback === 'like' ? 'active' : ''}"
+                    onclick="handleFeedback('${message.id}', 'like')"
+                    title="Gostei da resposta">
+                <i class="fas fa-thumbs-up"></i>
+            </button>
+            <button class="action-icon-btn small ${message.feedback === 'dislike' ? 'active' : ''}"
+                    onclick="handleFeedback('${message.id}', 'dislike')"
+                    title="Não gostei da resposta">
+                <i class="fas fa-thumbs-down"></i>
+            </button>
+            <button class="action-icon-btn small"
+                    onclick="regenerateLastMessage()"
+                    title="Gerar nova resposta">
+                <i class="fas fa-redo"></i>
+            </button>
+            <button class="action-icon-btn small"
+                    onclick="copyToClipboard(\`${message.content.replace(/`/g, '\\`')}\`)"
+                    title="Copiar resposta">
+                <i class="fas fa-copy"></i>
+            </button>
+        `;
 
             const messageContent = messageDiv.querySelector('.message-content');
             messageContent.appendChild(actionsDiv);
 
-            // Indicadores de erro ou timeout
             if (message.status === 'error') {
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'error-indicator';
@@ -3798,8 +4308,7 @@
                 timeoutDiv.innerHTML = '<i class="fas fa-clock"></i> Tempo esgotado';
                 messageContent.insertBefore(timeoutDiv, actionsDiv);
             }
-        }
-        else if (message.role === 'user') {
+        } else if (message.role === 'user') {
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'action-icon-btn small delete-btn';
             deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
@@ -3811,6 +4320,7 @@
             messageDiv.appendChild(deleteBtn);
         }
     }
+
     async function deleteSpecificMessage(messageId) {
         if (!confirm('Tem certeza que deseja excluir esta mensagem?')) return;
 
@@ -3830,7 +4340,6 @@
 
     async function handleFeedback(messageId, feedbackType) {
         try {
-            // Verificar se é uma mensagem do assistant
             const messageDoc = await db.collection('conversations')
                 .doc(currentConversationId)
                 .collection('messages')
@@ -3842,9 +4351,6 @@
                 return;
             }
 
-            const messageData = messageDoc.data();
-
-            // Verificar se o usuário é o dono da conversa
             const conversationDoc = await db.collection('conversations')
                 .doc(currentConversationId)
                 .get();
@@ -3861,7 +4367,6 @@
                 return;
             }
 
-            // Atualizar feedback da mensagem
             await db.collection('conversations')
                 .doc(currentConversationId)
                 .collection('messages')
@@ -3874,7 +4379,6 @@
 
             showNotification(`Feedback ${feedbackType === 'like' ? 'positivo' : 'negativo'} registrado`, 'success');
 
-            // Atualizar UI
             const messageDiv = document.querySelector(`.message[data-id="${messageId}"]`);
             if (messageDiv) {
                 const likeBtn = messageDiv.querySelector('.fa-thumbs-up')?.closest('button');
@@ -3888,6 +4392,7 @@
             showNotification('Erro ao salvar feedback: ' + error.message, 'error');
         }
     }
+
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text)
             .then(() => showNotification('Texto copiado para a área de transferência', 'success'))
@@ -3895,7 +4400,6 @@
     }
 
     function showTypingIndicator() {
-        // Remover indicador existente se houver
         removeTypingIndicator();
 
         const typingDiv = document.createElement('div');
@@ -3917,7 +4421,6 @@
         </div>
     `;
 
-        // Ocultar welcome screen se estiver visível
         if (welcomeScreen.parentNode === messagesContainer) {
             welcomeScreen.style.display = 'none';
         }
@@ -3958,9 +4461,6 @@
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            // Nota: A resposta será automaticamente capturada pelo messageListener
-            // Não precisamos monitorar separadamente
-
         } catch (error) {
             console.error('Error sending message from history:', error);
             removeTypingIndicator();
@@ -3981,7 +4481,7 @@
         messageInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                if ((this.value.trim() || uploadedImages.length > 0) && !isGenerating && !isSending) {
+                if ((this.value.trim() || uploadedImages.length > 0 || uploadedAudio) && !isGenerating && !isSending) {
                     sendMessage().catch(error => {
                         console.error('Error sending message:', error);
                         showNotification('Erro ao enviar mensagem', 'error');
@@ -3994,6 +4494,7 @@
     function updateSendButtonState() {
         const hasText = messageInput.value.trim().length > 0;
         const hasImages = uploadedImages.length > 0;
+        const hasAudio = uploadedAudio !== null;
 
         if (isGenerating) {
             sendBtn.disabled = false;
@@ -4001,245 +4502,18 @@
             sendBtn.title = 'Cancelar geração';
             sendBtn.classList.add('cancel');
         } else {
-            sendBtn.disabled = !(hasText || hasImages) || isSending;
+            sendBtn.disabled = !(hasText || hasImages || hasAudio) || isSending;
             sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
             sendBtn.title = 'Enviar mensagem';
             sendBtn.classList.remove('cancel');
         }
     }
 
-    async function startAudioRecording() {
-        try {
-            // Verificar se já está gravando
-            if (isRecording) {
-                stopAudioRecording();
-                return;
-            }
-
-            // Solicitar permissão de microfone
-            audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-            // Criar MediaRecorder
-            mediaRecorder = new MediaRecorder(audioStream);
-            audioChunks = [];
-
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    audioChunks.push(event.data);
-                }
-            };
-
-            mediaRecorder.onstop = () => {
-                // Áudio será processado ao enviar
-            };
-
-            // Iniciar gravação
-            mediaRecorder.start();
-            isRecording = true;
-            recordingStartTime = Date.now();
-
-            // Atualizar UI
-            audioBtn.classList.add('recording');
-            audioRecordingModal.classList.add('active');
-
-            // Iniciar timer
-            recordingTimer = setInterval(updateRecordingTime, 100);
-
-            console.log('Gravação de áudio iniciada');
-
-        } catch (error) {
-            console.error('Error starting audio recording:', error);
-
-            if (error.name === 'NotAllowedError') {
-                showNotification('Permissão de microfone negada', 'error');
-            } else if (error.name === 'NotFoundError') {
-                showNotification('Microfone não encontrado', 'error');
-            } else {
-                showNotification('Erro ao iniciar gravação de áudio', 'error');
-            }
-
-            cleanupAudioRecording();
-        }
-    }
-
-    function stopAudioRecording() {
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
-        }
-
-        if (recordingTimer) {
-            clearInterval(recordingTimer);
-            recordingTimer = null;
-        }
-
-        isRecording = false;
-        audioBtn.classList.remove('recording');
-    }
-
-    function cancelAudioRecording() {
-        stopAudioRecording();
-        cleanupAudioRecording();
-        audioRecordingModal.classList.remove('active');
-        audioChunks = [];
-        showNotification('Gravação cancelada', 'info');
-    }
-
-    function cleanupAudioRecording() {
-        if (audioStream) {
-            audioStream.getTracks().forEach(track => track.stop());
-            audioStream = null;
-        }
-
-        if (recordingTimer) {
-            clearInterval(recordingTimer);
-            recordingTimer = null;
-        }
-
-        isRecording = false;
-        audioBtn.classList.remove('recording');
-        recordingTime.textContent = '00:00';
-    }
-
-    function updateRecordingTime() {
-        if (!recordingStartTime) return;
-
-        const elapsed = Date.now() - recordingStartTime;
-        const seconds = Math.floor(elapsed / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-
-        recordingTime.textContent =
-            `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
-
-        // Limitar gravação a 5 minutos
-        if (elapsed > 300000) {
-            showNotification('Tempo máximo de gravação atingido (5 minutos)', 'warning');
-            sendAudioRecording();
-        }
-    }
-
-    async function sendAudioRecording() {
-        try {
-            stopAudioRecording();
-            audioRecordingModal.classList.remove('active');
-
-            if (audioChunks.length === 0) {
-                showNotification('Nenhum áudio gravado', 'error');
-                cleanupAudioRecording();
-                return;
-            }
-
-            // Criar blob do áudio
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            audioChunks = [];
-
-            // Criar conversa se necessário
-            if (!currentConversationId) {
-                const newConvId = await createNewConversation();
-                if (!newConvId) {
-                    showNotification('Erro ao criar conversa', 'error');
-                    cleanupAudioRecording();
-                    return;
-                }
-            }
-
-            // Upload do áudio para o Storage
-            showNotification('Enviando áudio...', 'info');
-            const storageRef = storage.ref();
-            const audioFileName = `audio_${Date.now()}.webm`;
-            const audioRef = storageRef.child(`users/${currentUser.uid}/audio/${audioFileName}`);
-
-            const snapshot = await audioRef.put(audioBlob);
-            const audioURL = await snapshot.ref.getDownloadURL();
-
-            console.log('Áudio enviado para Storage:', audioURL);
-
-            // Criar mensagem do usuário com áudio
-            const userMessageId = generateId();
-            const userMessage = {
-                id: userMessageId,
-                role: 'user',
-                content: '', // Será preenchido após transcrição
-                audio: {
-                    url: audioURL,
-                    fileName: audioFileName,
-                    contentType: 'audio/webm'
-                },
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                userId: currentUser.uid,
-                status: 'transcribing',
-                conversationId: currentConversationId
-            };
-
-            // Salvar mensagem no Firestore
-            await db.collection('conversations')
-                .doc(currentConversationId)
-                .collection('messages')
-                .doc(userMessageId)
-                .set(userMessage);
-
-            // Exibir mensagem na UI
-            if (welcomeScreen.parentNode === messagesContainer) {
-                welcomeScreen.style.display = 'none';
-            }
-
-            // Adicionar mensagem com indicador de transcrição
-            const tempMessage = {
-                ...userMessage,
-                timestamp: new Date()
-            };
-            addMessageToUI(tempMessage, true);
-
-            // Mostrar indicador de transcrição
-            const messageDiv = document.querySelector(`.message[data-id="${userMessageId}"]`);
-            if (messageDiv) {
-                const contentDiv = messageDiv.querySelector('.message-content');
-                const transcribingDiv = document.createElement('div');
-                transcribingDiv.className = 'transcribing-indicator';
-                transcribingDiv.innerHTML = `
-                <i class="fas fa-spinner fa-spin"></i>
-                <span>Transcrevendo áudio...</span>
-            `;
-                contentDiv.insertBefore(transcribingDiv, contentDiv.firstChild);
-            }
-
-            // Criar requisição de transcrição de áudio
-            const audioRequestId = generateId();
-            await db.collection('audio_requests').doc(audioRequestId).set({
-                audioRequestId: audioRequestId,
-                conversationId: currentConversationId,
-                messageId: userMessageId,
-                userId: currentUser.uid,
-                audioUrl: audioURL,
-                fileName: audioFileName,
-                status: 'pending',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            console.log('Requisição de transcrição criada:', audioRequestId);
-
-            // Aguardar transcrição (será atualizado pelo backend)
-            showNotification('Áudio enviado! Aguardando transcrição...', 'success');
-
-            // Limpar recursos
-            cleanupAudioRecording();
-
-        } catch (error) {
-            console.error('Error sending audio recording:', error);
-            showNotification('Erro ao enviar áudio: ' + error.message, 'error');
-            cleanupAudioRecording();
-        }
-    }
-
-
     function setupAIResponseListener(requestId, userMessageId) {
-        // Cancelar listener anterior se existir
         if (aiResponseListeners.has(requestId)) {
             aiResponseListeners.get(requestId)();
         }
 
-        // Criar listener específico para esta requisição
         const unsubscribe = db.collection('ai_responses')
             .where('requestId', '==', requestId)
             .where('conversationId', '==', currentConversationId)
@@ -4251,10 +4525,8 @@
                             const response = change.doc.data();
                             console.log('AI Response received:', response);
 
-                            // Processar a resposta do AI
                             processAIResponse(response, userMessageId);
 
-                            // Remover este listener após processar
                             if (aiResponseListeners.has(requestId)) {
                                 aiResponseListeners.get(requestId)();
                                 aiResponseListeners.delete(requestId);
@@ -4266,7 +4538,6 @@
                 console.error('Error listening to AI response:', error);
             });
 
-        // Armazenar a função para cancelar o listener
         aiResponseListeners.set(requestId, unsubscribe);
     }
 
@@ -4282,24 +4553,18 @@
                     status: 'sent',
                     model: response.model || userPreferences?.model || 'amazonia-1-standard',
                     requestId: response.requestId || currentRequestId
-                    // NÃO incluir userId para mensagens do assistant
                 };
 
-                // Salvar a mensagem do assistant no Firestore
                 const messageRef = await db.collection('conversations')
                     .doc(currentConversationId)
                     .collection('messages')
                     .add(assistantMessage);
 
-                // Atualizar o objeto com o ID gerado
                 assistantMessage.id = messageRef.id;
 
-                // Exibir na UI
                 addMessageToUI(assistantMessage, true);
 
-                // Atualizar título da conversa se for a primeira mensagem
                 if (currentChatTitle.textContent === 'Nova Conversa') {
-                    // Pegar o conteúdo da última mensagem do usuário
                     const lastUserMsgSnapshot = await db.collection('conversations')
                         .doc(currentConversationId)
                         .collection('messages')
@@ -4328,7 +4593,6 @@
                     content: 'Desculpe, houve um erro ao gerar a resposta. Por favor, tente novamente.',
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     status: 'error'
-                    // NÃO incluir userId para mensagens do assistant
                 };
                 const errorRef = await db.collection('conversations')
                     .doc(currentConversationId)
@@ -4350,7 +4614,7 @@
             updateSendButtonState();
         }
     }
-    // Corrigir a função formatTime para lidar com diferentes tipos de timestamp
+
     function formatTime(timestamp) {
         if (!timestamp) return '';
 
@@ -4358,25 +4622,20 @@
         try {
             if (typeof timestamp === 'object') {
                 if (timestamp.toDate) {
-                    // É um Firestore Timestamp
                     date = timestamp.toDate();
                 } else if (timestamp._seconds) {
-                    // É um objeto com _seconds
                     date = new Date(timestamp._seconds * 1000);
                 } else if (timestamp instanceof Date) {
-                    // Já é um Date
                     date = timestamp;
                 } else {
                     date = new Date();
                 }
             } else if (typeof timestamp === 'string' || typeof timestamp === 'number') {
-                // É uma string ou número
                 date = new Date(timestamp);
             } else {
                 date = new Date();
             }
 
-            // Verificar se a data é válida
             if (isNaN(date.getTime())) {
                 return 'Agora';
             }
@@ -4404,145 +4663,7 @@
             return 'Agora';
         }
     }
-    function addMessageToUI(message, animate = true) {
-        try {
-            // Verificar se a mensagem já existe no DOM
-            const existingMessage = document.querySelector(`.message[data-id="${message.id}"]`);
-            if (existingMessage) {
-                console.log('Message already in UI:', message.id);
-                return;
-            }
 
-            // Verificar se já foi exibida nesta sessão
-            if (displayedMessageIds.has(message.id)) {
-                console.log('Message already displayed in this session:', message.id);
-                return;
-            }
-
-            // Adicionar ao conjunto de IDs exibidos
-            displayedMessageIds.add(message.id);
-
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${message.role}`;
-            messageDiv.dataset.id = message.id;
-
-            // CORRIGIDO: Lidar corretamente com timestamp
-            let timestamp;
-            try {
-                if (message.timestamp && typeof message.timestamp === 'object') {
-                    // É um objeto Firestore Timestamp
-                    if (message.timestamp.toDate) {
-                        timestamp = message.timestamp.toDate();
-                    } else if (message.timestamp._seconds) {
-                        // É um objeto com _seconds e _nanoseconds
-                        timestamp = new Date(message.timestamp._seconds * 1000);
-                    } else {
-                        timestamp = new Date();
-                    }
-                } else if (message.timestamp) {
-                    // É uma string ou número
-                    timestamp = new Date(message.timestamp);
-                } else {
-                    timestamp = new Date();
-                }
-            } catch (e) {
-                console.warn('Erro ao processar timestamp:', e);
-                timestamp = new Date();
-            }
-
-            const time = formatTime(timestamp);
-            const avatarText = message.role === 'user'
-                ? (userName ? getInitials(userName.textContent) : 'Você')
-                : 'A1';
-
-            // Determinar se há conteúdo para exibir
-            const hasContent = message.content && message.content.trim().length > 0;
-            const hasImages = message.images && message.images.length > 0;
-            const hasAudio = message.audio && message.audio.url;
-
-            if (message.role === 'user') {
-                messageDiv.innerHTML = `
-        <div class="message-avatar" title="Você">${avatarText}</div>
-        <div class="message-content">
-            ${hasAudio ? `
-                <div class="audio-player">
-                    <audio controls src="${message.audio.url}"></audio>
-                </div>
-                ${message.status === 'transcribing' ? `
-                    <div class="transcribing-indicator">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <span>Transcrevendo áudio...</span>
-                    </div>
-                ` : ''}
-            ` : ''}
-            ${hasContent ? `<div class="message-text">${formatMessageContent(message.content)}</div>` : ''}
-            ${hasImages ?
-                    message.images.map(img =>
-                        `<img src="${img.url}" alt="${img.name}" class="message-image" loading="lazy">`
-                    ).join('') : ''}
-            <div class="message-time">
-                <i class="far fa-clock"></i> ${time}
-            </div>
-        </div>
-    `;
-            }else {
-                messageDiv.innerHTML = `
-                <div class="message-avatar" title="Amazônia 1 AI">${avatarText}</div>
-                <div class="message-content">
-                    ${hasContent ? `<div class="message-text">${formatMessageContent(message.content)}</div>` : ''}
-                    ${message.status === 'error' ?
-                    '<div style="color: var(--error-color); font-size: 12px; margin-top: 8px;"><i class="fas fa-exclamation-circle"></i> Erro ao processar</div>' : ''}
-                    ${message.status === 'timeout' ?
-                    '<div style="color: var(--warning-color); font-size: 12px; margin-top: 8px;"><i class="fas fa-clock"></i> Tempo esgotado</div>' : ''}
-                    <div class="message-time">
-                        <i class="far fa-clock"></i> ${time}
-                    </div>
-                </div>
-            `;
-            }
-
-            // Remover welcome screen se estiver visível
-            if (welcomeScreen.parentNode === messagesContainer) {
-                welcomeScreen.style.display = 'none';
-            }
-
-            // Adicionar ao container
-            messagesContainer.appendChild(messageDiv);
-
-            // Aplicar animação se solicitado
-            if (animate) {
-                messageDiv.style.opacity = '0';
-                messageDiv.style.transform = `translateY(${message.role === 'user' ? '10px' : '-10px'})`;
-
-                setTimeout(() => {
-                    messageDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                    messageDiv.style.opacity = '1';
-                    messageDiv.style.transform = 'translateY(0)';
-                    scrollToBottom();
-                }, 10);
-            } else {
-                // Sem animação, apenas scroll
-                setTimeout(() => {
-                    scrollToBottom();
-                }, 10);
-            }
-
-            // Adicionar ações apenas se não for um indicador de digitação
-            if (message.id !== 'typingIndicator') {
-                addMessageActions(messageDiv, message);
-            }
-
-            // Se for uma mensagem do assistente, resetar o estado de geração
-            if (message.role === 'assistant' && isGenerating) {
-                isGenerating = false;
-                currentRequestId = null;
-                updateSendButtonState();
-            }
-
-        } catch (error) {
-            console.error('Error adding message to UI:', error);
-        }
-    }  // Corrigir a função sendMessage para lidar melhor com a criação de conversas
     async function sendMessage() {
         if (isGenerating) {
             await cancelGeneration();
@@ -4555,12 +4676,11 @@
         }
 
         const text = messageInput.value.trim();
-        if (!text && uploadedImages.length === 0) return;
+        if (!text && uploadedImages.length === 0 && !uploadedAudio) return;
 
         isSending = true;
 
         try {
-            // Criar conversa se necessário
             if (!currentConversationId) {
                 const newConvId = await createNewConversation();
                 if (!newConvId) {
@@ -4570,15 +4690,14 @@
                 }
             }
 
-            // Criar mensagem do usuário COM TODOS OS CAMPOS NECESSÁRIOS
             const userMessageId = generateId();
             const userMessage = {
                 id: userMessageId,
                 role: 'user',
-                content: text || '', // Conteúdo obrigatório
+                content: text || '',
                 images: [],
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(), // Usar serverTimestamp
-                userId: currentUser.uid, // userId obrigatório
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                userId: currentUser.uid,
                 status: 'sent',
                 conversationId: currentConversationId
             };
@@ -4600,9 +4719,31 @@
                 }
             }
 
+            // Upload de áudio (se houver)
+            if (uploadedAudio) {
+                try {
+                    const audioFileName = `audio_${Date.now()}.webm`;
+                    const audioURL = await uploadAudioToStorage(uploadedAudio.blob, audioFileName);
+                    userMessage.audio = {
+                        url: audioURL,
+                        fileName: audioFileName,
+                        contentType: 'audio/webm',
+                        duration: uploadedAudio.duration || 0
+                    };
+                    userMessage.status = 'transcribing';
+                    if (!text) {
+                        userMessage.content = '[Mensagem de áudio - aguardando transcrição...]';
+                    }
+                } catch (uploadError) {
+                    console.error('Error uploading audio:', uploadError);
+                    showNotification('Erro ao enviar áudio', 'error');
+                }
+            }
+
             // Limpar UI
             messageInput.value = '';
             uploadedImages = [];
+            uploadedAudio = null;
             imagePreview.innerHTML = '';
             messageInput.style.height = 'auto';
 
@@ -4612,7 +4753,7 @@
             }
             addMessageToUI(userMessage, true);
 
-            // Salvar no Firestore COM TODOS OS CAMPOS NECESSÁRIOS
+            // Salvar no Firestore
             await db.collection('conversations').doc(currentConversationId)
                 .collection('messages')
                 .doc(userMessageId)
@@ -4633,6 +4774,23 @@
                 currentChatTitle.textContent = title;
             }
 
+            // Se houver áudio, criar requisição de transcrição
+            if (userMessage.audio) {
+                const audioRequestId = generateId();
+                await db.collection('audio_requests').doc(audioRequestId).set({
+                    audioRequestId: audioRequestId,
+                    conversationId: currentConversationId,
+                    messageId: userMessageId,
+                    userId: currentUser.uid,
+                    audioUrl: userMessage.audio.url,
+                    fileName: userMessage.audio.fileName,
+                    status: 'pending',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log('Requisição de transcrição criada:', audioRequestId);
+            }
+
             // Preparar para resposta do AI
             isGenerating = true;
             showTypingIndicator();
@@ -4640,15 +4798,13 @@
             const requestId = generateId();
             currentRequestId = requestId;
 
-            // Configurar listener para resposta
             setupAIResponseListener(requestId, userMessageId);
 
-            // Criar requisição para AI - garantir que tenha userId
             await db.collection('ai_requests').doc(requestId).set({
                 requestId: requestId,
                 conversationId: currentConversationId,
                 messageId: userMessageId,
-                userId: currentUser.uid, // userId obrigatório
+                userId: currentUser.uid,
                 userMessage: text || '',
                 images: userMessage.images,
                 model: userPreferences?.model || 'amazonia-1-standard',
@@ -4658,7 +4814,6 @@
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
-            // Timeout de 90 segundos
             setTimeout(() => {
                 if (isGenerating && currentRequestId === requestId) {
                     console.log('Timeout: resetando estado');
@@ -4668,7 +4823,6 @@
                     updateSendButtonState();
                     showNotification('O tempo de resposta excedeu o limite. Tente novamente.', 'warning');
 
-                    // Remover listener
                     if (aiResponseListeners.has(requestId)) {
                         aiResponseListeners.get(requestId)();
                         aiResponseListeners.delete(requestId);
@@ -4687,19 +4841,17 @@
             isSending = false;
         }
     }
-    // Corrigir a função createNewConversation para evitar duplicação
+
     async function createNewConversation() {
         if (isCreatingConversation) {
             console.log('Aguarde, já está criando uma conversa...');
 
-            // Esperar até que a conversa seja criada
             let waitCount = 0;
             while (isCreatingConversation && waitCount < 100) {
                 await new Promise(resolve => setTimeout(resolve, 100));
                 waitCount++;
             }
 
-            // Se ainda não tiver currentConversationId após espera
             if (!currentConversationId) {
                 console.error('Timeout ao criar conversa');
                 showNotification('Erro ao criar conversa (timeout)', 'error');
@@ -4725,13 +4877,13 @@
 
             currentConversationId = conversationRef.id;
 
-            // Atualizar UI
             messagesContainer.innerHTML = '';
             welcomeScreen.style.display = 'flex';
             messagesContainer.appendChild(welcomeScreen);
             currentChatTitle.textContent = 'Nova Conversa';
 
             uploadedImages = [];
+            uploadedAudio = null;
             imagePreview.innerHTML = '';
             displayedMessageIds.clear();
 
@@ -4749,41 +4901,23 @@
         }
     }
 
-    // Adicionar esta função para evitar múltiplas inicializações
-    function safeToDate(timestamp) {
-        try {
-            if (timestamp && typeof timestamp === 'object' && timestamp.toDate) {
-                return timestamp.toDate();
-            }
-            return new Date(timestamp);
-        } catch (e) {
-            console.warn('Erro ao converter timestamp:', e);
-            return new Date();
-        }
-    }
-
     async function loadConversations() {
         try {
             console.log('loadConversations: Iniciando carregamento...', currentUser.uid);
 
-            // Limpar listener anterior se existir
             if (conversationsListener) {
                 console.log('loadConversations: Removendo listener anterior');
                 conversationsListener();
                 conversationsListener = null;
             }
 
-            // Limpar lista atual
             conversationsList.innerHTML = '';
 
-            // Mostrar estado vazio inicial
             emptyConversations.style.display = 'flex';
             noResults.style.display = 'none';
 
-            // Pequeno delay para evitar conflitos
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            // Verificar se o usuário está autenticado
             if (!currentUser || !currentUser.uid) {
                 console.error('loadConversations: Usuário não autenticado');
                 return;
@@ -4791,7 +4925,6 @@
 
             console.log('loadConversations: Configurando listener para usuário:', currentUser.uid);
 
-            // Criar listener para conversas
             conversationsListener = db.collection('conversations')
                 .where('userId', '==', currentUser.uid)
                 .orderBy('updatedAt', 'desc')
@@ -4799,7 +4932,6 @@
                     try {
                         console.log('loadConversations: Snapshot recebido -', snapshot.size, 'conversas');
 
-                        // Limpar lista atual
                         conversationsList.innerHTML = '';
 
                         if (snapshot.empty) {
@@ -4810,11 +4942,9 @@
                             return;
                         }
 
-                        // Esconder estado vazio
                         emptyConversations.style.display = 'none';
                         noResults.style.display = 'none';
 
-                        // Processar conversas
                         const conversations = [];
                         snapshot.forEach(doc => {
                             try {
@@ -4831,14 +4961,11 @@
 
                         console.log('loadConversations: Total de conversas processadas:', conversations.length);
 
-                        // Ordenar: favoritos primeiro, depois por data
                         conversations.sort((a, b) => {
                             try {
-                                // Favoritos primeiro
                                 if (a.favorite && !b.favorite) return -1;
                                 if (!a.favorite && b.favorite) return 1;
 
-                                // Depois por data mais recente
                                 let timeA, timeB;
 
                                 try {
@@ -4862,7 +4989,6 @@
                             }
                         });
 
-                        // Adicionar cada conversa à UI
                         conversations.forEach(conversation => {
                             try {
                                 addConversationToUI(conversation.id, conversation);
@@ -4873,7 +4999,6 @@
 
                         console.log('loadConversations: Conversas adicionadas à UI:', conversationsList.children.length);
 
-                        // Atualizar conversa ativa se houver uma selecionada
                         updateActiveConversation();
 
                         initialLoadComplete = true;
@@ -4889,7 +5014,6 @@
                     if (error.code === 'failed-precondition') {
                         console.warn('loadConversations: Índice não criado ainda. Tentando carregar sem ordenação...');
 
-                        // Fallback: carregar sem ordenação
                         db.collection('conversations')
                             .where('userId', '==', currentUser.uid)
                             .get()
@@ -4914,7 +5038,6 @@
                                     });
                                 });
 
-                                // Ordenar localmente por data
                                 conversations.sort((a, b) => {
                                     let timeA, timeB;
 
@@ -4962,69 +5085,307 @@
         }
     }
 
-    // Adicione esta função para limpar tudo ao fazer logout
-    logoutBtn.addEventListener('click', () => {
-        if (confirm('Tem certeza que deseja sair?')) {
-            // Limpar todos os listeners
-            if (messageListener) messageListener();
-            if (conversationsListener) conversationsListener();
-            aiResponseListeners.forEach(unsubscribe => unsubscribe());
-            aiResponseListeners.clear();
+    // ============================================
+    // FUNÇÕES DE ÁUDIO - SISTEMA COMPLETO
+    // ============================================
 
-            auth.signOut().then(() => {
-                showNotification('Logout realizado com sucesso', 'success');
-            }).catch(error => {
-                console.error('Error signing out:', error);
-                showNotification('Erro ao fazer logout', 'error');
-            });
+    async function startAudioRecording() {
+        try {
+            console.log('startAudioRecording: Iniciando gravação de áudio...');
+
+            // Solicitar permissão de microfone
+            audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            console.log('startAudioRecording: Permissão de microfone concedida');
+
+            // Criar MediaRecorder
+            mediaRecorder = new MediaRecorder(audioStream);
+            audioChunks = [];
+            recordedAudioBlob = null;
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    console.log('Dados de áudio recebidos, tamanho:', event.data.size);
+                    audioChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                console.log('Gravação parada, processando áudio...');
+                recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                console.log('Blob de áudio criado, tamanho:', recordedAudioBlob.size);
+
+                // Mostrar preview do áudio
+                showAudioPreview(recordedAudioBlob);
+            };
+
+            mediaRecorder.onerror = (event) => {
+                console.error('Erro no MediaRecorder:', event.error);
+                showNotification('Erro na gravação: ' + event.error.name, 'error');
+                cleanupAudioRecording();
+            };
+
+            // Iniciar gravação
+            mediaRecorder.start();
+            isRecording = true;
+            recordingStartTime = Date.now();
+
+            console.log('Gravação iniciada, estado:', mediaRecorder.state);
+
+            // Atualizar UI para estado "gravando"
+            audioBtn.classList.add('recording');
+            audioBtn.innerHTML = '<i class="fas fa-stop"></i>';
+            audioBtn.title = 'Parar gravação';
+            audioRecordingModal.classList.add('active');
+
+            const recordingTitle = document.getElementById('recordingTitle');
+            const recordingIndicator = document.getElementById('recordingIndicator');
+            const recordingWaveform = document.getElementById('recordingWaveform');
+            const audioPreview = document.getElementById('audioPreview');
+            const recordingActions = document.getElementById('recordingActions');
+            const stoppedActions = document.getElementById('stoppedActions');
+
+            if (recordingTitle) recordingTitle.textContent = 'Gravando áudio';
+            if (recordingIndicator) recordingIndicator.classList.remove('stopped');
+            if (recordingWaveform) recordingWaveform.classList.remove('stopped');
+            if (audioPreview) audioPreview.style.display = 'none';
+            if (recordingActions) recordingActions.style.display = 'flex';
+            if (stoppedActions) stoppedActions.style.display = 'none';
+
+            // Iniciar timer
+            recordingTimer = setInterval(updateRecordingTime, 100);
+
+            console.log('UI atualizada para modo de gravação');
+
+        } catch (error) {
+            console.error('Erro ao iniciar gravação:', error);
+
+            if (error.name === 'NotAllowedError') {
+                showNotification('Permissão de microfone negada', 'error');
+            } else if (error.name === 'NotFoundError') {
+                showNotification('Microfone não encontrado', 'error');
+            } else {
+                showNotification('Erro ao iniciar gravação: ' + error.message, 'error');
+            }
+
+            cleanupAudioRecording();
         }
-    });
+    }
 
+    function stopAudioRecording() {
+        console.log('stopAudioRecording: Parando gravação...');
 
-    // Adicione esta função para limpar tudo ao fazer logout
-    logoutBtn.addEventListener('click', () => {
-        if (confirm('Tem certeza que deseja sair?')) {
-            // Limpar todos os listeners
-            if (messageListener) messageListener();
-            if (conversationsListener) conversationsListener();
-            aiResponseListeners.forEach(unsubscribe => unsubscribe());
-            aiResponseListeners.clear();
-
-            auth.signOut().then(() => {
-                showNotification('Logout realizado com sucesso', 'success');
-            }).catch(error => {
-                console.error('Error signing out:', error);
-                showNotification('Erro ao fazer logout', 'error');
-            });
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
         }
-    });
 
-    // Adicionar dentro da função initializeEventListeners()
+        if (recordingTimer) {
+            clearInterval(recordingTimer);
+            recordingTimer = null;
+        }
 
-    audioBtn.addEventListener('click', () => {
-        if (isRecording) {
+        isRecording = false;
+        audioBtn.classList.remove('recording');
+        audioBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+        audioBtn.title = 'Gravar áudio';
+
+        const recordingTitle = document.getElementById('recordingTitle');
+        const recordingIndicator = document.getElementById('recordingIndicator');
+        const recordingWaveform = document.getElementById('recordingWaveform');
+        const recordingActions = document.getElementById('recordingActions');
+        const stoppedActions = document.getElementById('stoppedActions');
+
+        if (recordingTitle) recordingTitle.textContent = 'Pré-visualização de áudio';
+        if (recordingIndicator) recordingIndicator.classList.add('stopped');
+        if (recordingWaveform) recordingWaveform.classList.add('stopped');
+        if (recordingActions) recordingActions.style.display = 'none';
+        if (stoppedActions) stoppedActions.style.display = 'flex';
+
+        console.log('Gravação parada');
+    }
+
+    function showAudioPreview(blob) {
+        console.log('showAudioPreview: Mostrando preview do áudio');
+
+        const audioPreview = document.getElementById('audioPreview');
+        const audioPlayer = document.getElementById('audioPreviewPlayer');
+
+        if (audioPlayer && audioPreview) {
+            // Limpar URL anterior se existir
+            if (audioPlayer.src) {
+                URL.revokeObjectURL(audioPlayer.src);
+            }
+
+            // Criar URL para o blob
+            const audioURL = URL.createObjectURL(blob);
+            audioPlayer.src = audioURL;
+            audioPreview.style.display = 'block';
+
+            console.log('Preview de áudio configurado');
+        }
+    }
+
+    function addAudioPreview(blob, duration) {
+        console.log('addAudioPreview: Adicionando preview à área de mensagem');
+
+        // Criar preview similar ao de imagem
+        const previewItem = document.createElement('div');
+        previewItem.className = 'preview-item audio-preview-item';
+
+        const audioURL = URL.createObjectURL(blob);
+        const durationText = formatDuration(duration);
+
+        previewItem.innerHTML = `
+        <div class="audio-preview-container">
+            <i class="fas fa-microphone audio-icon"></i>
+            <div class="audio-info">
+                <span class="audio-duration">${durationText}</span>
+                <audio controls src="${audioURL}" style="width: 100%; margin-top: 8px;"></audio>
+            </div>
+        </div>
+        <button class="remove-image" onclick="removeAudioPreview()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+        imagePreview.appendChild(previewItem);
+        updateSendButtonState();
+
+        console.log('Preview de áudio adicionado à área de mensagem');
+    }
+
+    function formatDuration(ms) {
+        const seconds = Math.floor(ms / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+    }
+
+    function removeAudioPreview() {
+        console.log('removeAudioPreview: Removendo preview de áudio');
+
+        uploadedAudio = null;
+
+        // Remover elemento do DOM
+        const audioPreviewItem = document.querySelector('.audio-preview-item');
+        if (audioPreviewItem) {
+            const audioElement = audioPreviewItem.querySelector('audio');
+            if (audioElement && audioElement.src) {
+                URL.revokeObjectURL(audioElement.src);
+            }
+            audioPreviewItem.remove();
+        }
+
+        updateSendButtonState();
+        console.log('Preview de áudio removido');
+    }
+
+    function cancelAudioRecording() {
+        console.log('cancelAudioRecording: Cancelando gravação');
+
+        stopAudioRecording();
+        cleanupAudioRecording();
+        audioRecordingModal.classList.remove('active');
+        audioChunks = [];
+        recordedAudioBlob = null;
+
+        const audioPlayer = document.getElementById('audioPreviewPlayer');
+        if (audioPlayer && audioPlayer.src) {
+            URL.revokeObjectURL(audioPlayer.src);
+            audioPlayer.src = '';
+        }
+
+        showNotification('Gravação cancelada', 'info');
+    }
+
+    function cleanupAudioRecording() {
+        console.log('cleanupAudioRecording: Limpando recursos de áudio');
+
+        if (audioStream) {
+            audioStream.getTracks().forEach(track => track.stop());
+            audioStream = null;
+        }
+
+        if (recordingTimer) {
+            clearInterval(recordingTimer);
+            recordingTimer = null;
+        }
+
+        isRecording = false;
+        audioBtn.classList.remove('recording');
+        audioBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+        audioBtn.title = 'Gravar áudio';
+        recordingTime.textContent = '00:00';
+
+        const recordingIndicator = document.getElementById('recordingIndicator');
+        const recordingWaveform = document.getElementById('recordingWaveform');
+        if (recordingIndicator) recordingIndicator.classList.remove('stopped');
+        if (recordingWaveform) recordingWaveform.classList.remove('stopped');
+
+        console.log('Recursos de áudio limpos');
+    }
+
+    function updateRecordingTime() {
+        if (!recordingStartTime) return;
+
+        const elapsed = Date.now() - recordingStartTime;
+        const seconds = Math.floor(elapsed / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+
+        recordingTime.textContent =
+            `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+
+        // Limitar gravação a 5 minutos
+        if (elapsed > 300000) {
+            showNotification('Tempo máximo de gravação atingido (5 minutos)', 'warning');
             stopAudioRecording();
-        } else {
-            startAudioRecording();
         }
-    });
+    }
 
-    cancelRecording.addEventListener('click', cancelAudioRecording);
+    function sendAudioRecording() {
+        console.log('sendAudioRecording: Confirmando envio de áudio');
 
-    sendRecording.addEventListener('click', sendAudioRecording);
-
-    // Fechar modal ao clicar fora
-    audioRecordingModal.addEventListener('click', (e) => {
-        if (e.target === audioRecordingModal) {
-            cancelAudioRecording();
+        if (!recordedAudioBlob) {
+            showNotification('Nenhum áudio gravado', 'error');
+            cleanupAudioRecording();
+            audioRecordingModal.classList.remove('active');
+            return;
         }
-    });
 
+        const duration = Date.now() - recordingStartTime;
 
+        // Armazenar áudio para envio junto com a mensagem
+        uploadedAudio = {
+            blob: recordedAudioBlob,
+            duration: duration
+        };
 
+        // Fechar modal
+        audioRecordingModal.classList.remove('active');
 
+        // Adicionar preview na área de mensagem
+        addAudioPreview(recordedAudioBlob, duration);
+
+        // Limpar recursos
+        cleanupAudioRecording();
+        recordedAudioBlob = null;
+        audioChunks = [];
+
+        // Focar no input de mensagem
+        messageInput.focus();
+
+        showNotification('Áudio adicionado! Adicione uma mensagem ou envie apenas o áudio.', 'success');
+        console.log('Áudio pronto para envio');
+    }
+
+    // ============================================
+    // FIM DAS FUNÇÕES DE ÁUDIO
+    // ============================================
 
     function initializeEventListeners() {
+        console.log('initializeEventListeners: Configurando event listeners...');
+
+        // Botão de enviar mensagem
         sendBtn.addEventListener('click', function() {
             if (isGenerating) {
                 cancelGeneration().catch(error => {
@@ -5039,9 +5400,11 @@
             }
         });
 
+        // Input de mensagem
         messageInput.addEventListener('input', function() {
             const hasText = this.value.trim().length > 0;
             const hasImages = uploadedImages.length > 0;
+            const hasAudio = uploadedAudio !== null;
 
             if (isGenerating) {
                 sendBtn.innerHTML = '<i class="fas fa-stop-circle"></i>';
@@ -5049,7 +5412,7 @@
                 sendBtn.disabled = false;
                 sendBtn.classList.add('cancel');
             } else {
-                sendBtn.disabled = !(hasText || hasImages) || isSending;
+                sendBtn.disabled = !(hasText || hasImages || hasAudio) || isSending;
                 sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
                 sendBtn.title = 'Enviar mensagem';
                 sendBtn.classList.remove('cancel');
@@ -5063,7 +5426,7 @@
         messageInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                if ((this.value.trim() || uploadedImages.length > 0) && !isGenerating && !isSending) {
+                if ((this.value.trim() || uploadedImages.length > 0 || uploadedAudio) && !isGenerating && !isSending) {
                     sendMessage().catch(error => {
                         console.error('Error sending message:', error);
                         showNotification('Erro ao enviar mensagem', 'error');
@@ -5072,6 +5435,7 @@
             }
         });
 
+        // Botão de upload de imagens
         uploadBtn.addEventListener('click', () => {
             imageUpload.value = '';
             imageUpload.click();
@@ -5080,38 +5444,68 @@
         imageUpload.addEventListener('change', handleImageUpload);
 
         // ============================================
-        // LISTENERS DE ÁUDIO
+        // EVENT LISTENERS DE ÁUDIO
         // ============================================
-        audioBtn.addEventListener('click', () => {
+
+        // Botão principal de áudio (toggle entre iniciar e parar)
+        audioBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('audioBtn clicked, isRecording:', isRecording);
+
             if (isRecording) {
                 stopAudioRecording();
             } else {
-                startAudioRecording();
+                await startAudioRecording();
             }
         });
 
-        // NOVO: Botão de parar gravação
+        // Botão de parar gravação no modal
         const stopRecordingBtn = document.getElementById('stopRecording');
         if (stopRecordingBtn) {
-            stopRecordingBtn.addEventListener('click', () => {
+            stopRecordingBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('stopRecording button clicked');
                 stopAudioRecording();
             });
         }
 
-        cancelRecording.addEventListener('click', cancelAudioRecording);
+        // Botão de cancelar gravação no modal
+        const cancelRecordingBtn = document.getElementById('cancelRecording');
+        if (cancelRecordingBtn) {
+            cancelRecordingBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('cancelRecording button clicked');
+                cancelAudioRecording();
+            });
+        }
 
-        sendRecording.addEventListener('click', sendAudioRecording);
+        // Botão de enviar gravação no modal
+        const sendRecordingBtn = document.getElementById('sendRecording');
+        if (sendRecordingBtn) {
+            sendRecordingBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('sendRecording button clicked');
+                sendAudioRecording();
+            });
+        }
 
-        // Fechar modal ao clicar fora
+        // Fechar modal de gravação ao clicar fora
         audioRecordingModal.addEventListener('click', (e) => {
             if (e.target === audioRecordingModal) {
+                console.log('Clicked outside modal');
                 cancelAudioRecording();
             }
         });
+
         // ============================================
-        // FIM DOS LISTENERS DE ÁUDIO
+        // FIM DOS EVENT LISTENERS DE ÁUDIO
         // ============================================
 
+        // Botão de nova conversa
         newChatBtn.addEventListener('click', () => {
             searchInput.value = '';
             searchConversations('');
@@ -5121,9 +5515,9 @@
             });
         });
 
+        // Botão de logout
         logoutBtn.addEventListener('click', () => {
             if (confirm('Tem certeza que deseja sair?')) {
-                // Limpar todos os listeners
                 if (messageListener) messageListener();
                 if (conversationsListener) conversationsListener();
                 aiResponseListeners.forEach(unsubscribe => unsubscribe());
@@ -5138,6 +5532,7 @@
             }
         });
 
+        // Botão de configurações
         settingsBtn.addEventListener('click', () => {
             settingsModal.classList.add('active');
         });
@@ -5152,6 +5547,7 @@
             }
         });
 
+        // Sliders de configurações
         temperatureSlider.addEventListener('input', () => {
             temperatureValue.textContent = temperatureSlider.value;
         });
@@ -5185,6 +5581,7 @@
             languageValue.textContent = selectedOption.text;
         });
 
+        // Salvar configurações
         saveSettings.addEventListener('click', () => {
             const newPreferences = {
                 theme: themeSelect.value,
@@ -5209,6 +5606,7 @@
             });
         });
 
+        // Menu mobile
         mobileMenuBtn.addEventListener('click', () => {
             sidebar.classList.add('active');
             sidebarOverlay.classList.add('active');
@@ -5219,10 +5617,12 @@
             sidebarOverlay.classList.remove('active');
         });
 
+        // Pesquisa de conversas
         searchInput.addEventListener('input', (e) => {
             searchConversations(e.target.value);
         });
 
+        // Atalhos de teclado
         document.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
                 e.preventDefault();
@@ -5256,286 +5656,158 @@
                     settingsModal.classList.remove('active');
                 }
                 if (audioRecordingModal.classList.contains('active')) {
+                    console.log('ESC pressed - cancelling recording');
                     cancelAudioRecording();
                 }
             }
         });
 
         window.addEventListener('resize', handleResize);
+
+        console.log('initializeEventListeners: Event listeners configurados com sucesso');
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Variável para armazenar o blob de áudio
-    let recordedAudioBlob = null;
-
-    async function startAudioRecording() {
+    function addMessageToUI(message, animate = true) {
         try {
-            // Verificar se já está gravando
-            if (isRecording) {
-                stopAudioRecording();
+            const existingMessage = document.querySelector(`.message[data-id="${message.id}"]`);
+            if (existingMessage) {
+                console.log('Message already in UI:', message.id);
                 return;
             }
 
-            // Solicitar permissão de microfone
-            audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            if (displayedMessageIds.has(message.id)) {
+                console.log('Message already displayed in this session:', message.id);
+                return;
+            }
 
-            // Criar MediaRecorder
-            mediaRecorder = new MediaRecorder(audioStream);
-            audioChunks = [];
-            recordedAudioBlob = null;
+            displayedMessageIds.add(message.id);
 
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    audioChunks.push(event.data);
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${message.role}`;
+            messageDiv.dataset.id = message.id;
+
+            let timestamp;
+            try {
+                if (message.timestamp && typeof message.timestamp === 'object') {
+                    if (message.timestamp.toDate) {
+                        timestamp = message.timestamp.toDate();
+                    } else if (message.timestamp._seconds) {
+                        timestamp = new Date(message.timestamp._seconds * 1000);
+                    } else {
+                        timestamp = new Date();
+                    }
+                } else if (message.timestamp) {
+                    timestamp = new Date(message.timestamp);
+                } else {
+                    timestamp = new Date();
                 }
-            };
+            } catch (e) {
+                console.warn('Erro ao processar timestamp:', e);
+                timestamp = new Date();
+            }
 
-            mediaRecorder.onstop = () => {
-                // Criar blob quando parar
-                recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const time = formatTime(timestamp);
+            const avatarText = message.role === 'user'
+                ? (userName ? getInitials(userName.textContent) : 'Você')
+                : 'A1';
 
-                // Mostrar preview do áudio
-                const audioPreview = document.getElementById('audioPreview');
-                const audioPlayer = document.getElementById('audioPreviewPlayer');
-                const audioUrl = URL.createObjectURL(recordedAudioBlob);
-                audioPlayer.src = audioUrl;
-                audioPreview.style.display = 'block';
+            const hasContent = message.content && message.content.trim().length > 0;
+            const hasImages = message.images && message.images.length > 0;
+            const hasAudio = message.audio && message.audio.url;
 
-                // Atualizar UI para estado "parado"
-                document.getElementById('recordingTitle').textContent = 'Gravação finalizada';
-                document.getElementById('recordingIndicator').classList.add('stopped');
-                document.getElementById('recordingWaveform').classList.add('stopped');
-                document.getElementById('recordingActions').style.display = 'none';
-                document.getElementById('stoppedActions').style.display = 'flex';
-            };
-
-            // Iniciar gravação
-            mediaRecorder.start();
-            isRecording = true;
-            recordingStartTime = Date.now();
-
-            // Atualizar UI para estado "gravando"
-            audioBtn.classList.add('recording');
-            audioRecordingModal.classList.add('active');
-            document.getElementById('recordingTitle').textContent = 'Gravando áudio';
-            document.getElementById('recordingIndicator').classList.remove('stopped');
-            document.getElementById('recordingWaveform').classList.remove('stopped');
-            document.getElementById('audioPreview').style.display = 'none';
-            document.getElementById('recordingActions').style.display = 'flex';
-            document.getElementById('stoppedActions').style.display = 'none';
-
-            // Iniciar timer
-            recordingTimer = setInterval(updateRecordingTime, 100);
-
-            console.log('Gravação de áudio iniciada');
-
-        } catch (error) {
-            console.error('Error starting audio recording:', error);
-
-            if (error.name === 'NotAllowedError') {
-                showNotification('Permissão de microfone negada', 'error');
-            } else if (error.name === 'NotFoundError') {
-                showNotification('Microfone não encontrado', 'error');
+            if (message.role === 'user') {
+                messageDiv.innerHTML = `
+                <div class="message-avatar" title="Você">${avatarText}</div>
+                <div class="message-content">
+                    ${hasAudio ? `
+                        <div class="audio-message">
+                            <div class="audio-player">
+                                <audio controls src="${message.audio.url}" style="width: 100%; max-width: 300px; margin: 8px 0;"></audio>
+                            </div>
+                            ${message.status === 'transcribing' ? `
+                                <div class="transcribing-indicator" style="display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; margin: 8px 0;">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <span>Transcrevendo áudio...</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                    ${hasContent && message.content !== '[Mensagem de áudio - aguardando transcrição...]' ?
+                    `<div class="message-text" style="margin-top: ${hasAudio ? '8px' : '0'};">${formatMessageContent(message.content)}</div>`
+                    : ''}
+                    ${hasImages ?
+                    message.images.map(img =>
+                        `<img src="${img.url}" alt="${img.name}" class="message-image" loading="lazy">`
+                    ).join('') : ''}
+                    <div class="message-time">
+                        <i class="far fa-clock"></i> ${time}
+                    </div>
+                </div>
+            `;
             } else {
-                showNotification('Erro ao iniciar gravação de áudio', 'error');
+                messageDiv.innerHTML = `
+                <div class="message-avatar" title="Amazônia 1 AI">${avatarText}</div>
+                <div class="message-content">
+                    ${hasContent ? `<div class="message-text">${formatMessageContent(message.content)}</div>` : ''}
+                    ${message.status === 'error' ?
+                    '<div style="color: var(--error-color); font-size: 12px; margin-top: 8px;"><i class="fas fa-exclamation-circle"></i> Erro ao processar</div>' : ''}
+                    ${message.status === 'timeout' ?
+                    '<div style="color: var(--warning-color); font-size: 12px; margin-top: 8px;"><i class="fas fa-clock"></i> Tempo esgotado</div>' : ''}
+                    <div class="message-time">
+                        <i class="far fa-clock"></i> ${time}
+                    </div>
+                </div>
+            `;
             }
 
-            cleanupAudioRecording();
-        }
-    }
-
-    function stopAudioRecording() {
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
-        }
-
-        if (recordingTimer) {
-            clearInterval(recordingTimer);
-            recordingTimer = null;
-        }
-
-        isRecording = false;
-        audioBtn.classList.remove('recording');
-    }
-
-    function cancelAudioRecording() {
-        stopAudioRecording();
-        cleanupAudioRecording();
-        audioRecordingModal.classList.remove('active');
-        audioChunks = [];
-        recordedAudioBlob = null;
-
-        // Limpar preview
-        const audioPlayer = document.getElementById('audioPreviewPlayer');
-        if (audioPlayer.src) {
-            URL.revokeObjectURL(audioPlayer.src);
-            audioPlayer.src = '';
-        }
-
-        showNotification('Gravação cancelada', 'info');
-    }
-
-    function cleanupAudioRecording() {
-        if (audioStream) {
-            audioStream.getTracks().forEach(track => track.stop());
-            audioStream = null;
-        }
-
-        if (recordingTimer) {
-            clearInterval(recordingTimer);
-            recordingTimer = null;
-        }
-
-        isRecording = false;
-        audioBtn.classList.remove('recording');
-        recordingTime.textContent = '00:00';
-
-        // Resetar UI
-        document.getElementById('recordingIndicator').classList.remove('stopped');
-        document.getElementById('recordingWaveform').classList.remove('stopped');
-    }
-
-    function updateRecordingTime() {
-        if (!recordingStartTime) return;
-
-        const elapsed = Date.now() - recordingStartTime;
-        const seconds = Math.floor(elapsed / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-
-        recordingTime.textContent =
-            `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
-
-        // Limitar gravação a 5 minutos
-        if (elapsed > 300000) {
-            showNotification('Tempo máximo de gravação atingido (5 minutos)', 'warning');
-            stopAudioRecording();
-        }
-    }
-
-    async function sendAudioRecording() {
-        try {
-            audioRecordingModal.classList.remove('active');
-
-            if (!recordedAudioBlob) {
-                showNotification('Nenhum áudio gravado', 'error');
-                cleanupAudioRecording();
-                return;
-            }
-
-            // Criar conversa se necessário
-            if (!currentConversationId) {
-                const newConvId = await createNewConversation();
-                if (!newConvId) {
-                    showNotification('Erro ao criar conversa', 'error');
-                    cleanupAudioRecording();
-                    return;
-                }
-            }
-
-            // Upload do áudio para o Storage
-            showNotification('Enviando áudio...', 'info');
-            const storageRef = storage.ref();
-            const audioFileName = `audio_${Date.now()}.webm`;
-            const audioRef = storageRef.child(`users/${currentUser.uid}/audio/${audioFileName}`);
-
-            const snapshot = await audioRef.put(recordedAudioBlob);
-            const audioURL = await snapshot.ref.getDownloadURL();
-
-            console.log('Áudio enviado para Storage:', audioURL);
-
-            // Criar mensagem do usuário com áudio
-            const userMessageId = generateId();
-            const userMessage = {
-                id: userMessageId,
-                role: 'user',
-                content: '', // Será preenchido após transcrição
-                audio: {
-                    url: audioURL,
-                    fileName: audioFileName,
-                    contentType: 'audio/webm'
-                },
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                userId: currentUser.uid,
-                status: 'transcribing',
-                conversationId: currentConversationId
-            };
-
-            // Salvar mensagem no Firestore
-            await db.collection('conversations')
-                .doc(currentConversationId)
-                .collection('messages')
-                .doc(userMessageId)
-                .set(userMessage);
-
-            // Exibir mensagem na UI
             if (welcomeScreen.parentNode === messagesContainer) {
                 welcomeScreen.style.display = 'none';
             }
 
-            // Adicionar mensagem com indicador de transcrição
-            const tempMessage = {
-                ...userMessage,
-                timestamp: new Date()
-            };
-            addMessageToUI(tempMessage, true);
+            messagesContainer.appendChild(messageDiv);
 
-            // Criar requisição de transcrição de áudio
-            const audioRequestId = generateId();
-            await db.collection('audio_requests').doc(audioRequestId).set({
-                audioRequestId: audioRequestId,
-                conversationId: currentConversationId,
-                messageId: userMessageId,
-                userId: currentUser.uid,
-                audioUrl: audioURL,
-                fileName: audioFileName,
-                status: 'pending',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            if (animate) {
+                messageDiv.style.opacity = '0';
+                messageDiv.style.transform = `translateY(${message.role === 'user' ? '10px' : '-10px'})`;
 
-            console.log('Requisição de transcrição criada:', audioRequestId);
+                setTimeout(() => {
+                    messageDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    messageDiv.style.opacity = '1';
+                    messageDiv.style.transform = 'translateY(0)';
+                    scrollToBottom();
+                }, 10);
+            } else {
+                setTimeout(() => {
+                    scrollToBottom();
+                }, 10);
+            }
 
-            // Aguardar transcrição (será atualizado pelo backend)
-            showNotification('Áudio enviado! Aguardando transcrição...', 'success');
+            if (message.id !== 'typingIndicator') {
+                addMessageActions(messageDiv, message);
+            }
 
-            // Limpar recursos
-            cleanupAudioRecording();
-            recordedAudioBlob = null;
-            audioChunks = [];
-
-            // Limpar preview
-            const audioPlayer = document.getElementById('audioPreviewPlayer');
-            if (audioPlayer.src) {
-                URL.revokeObjectURL(audioPlayer.src);
-                audioPlayer.src = '';
+            if (message.role === 'assistant' && isGenerating) {
+                isGenerating = false;
+                currentRequestId = null;
+                updateSendButtonState();
             }
 
         } catch (error) {
-            console.error('Error sending audio recording:', error);
-            showNotification('Erro ao enviar áudio: ' + error.message, 'error');
-            cleanupAudioRecording();
+            console.error('Error adding message to UI:', error);
         }
     }
 
 
 
+
+    // Expor funções globais necessárias
     window.handleFeedback = handleFeedback;
     window.regenerateLastMessage = regenerateLastMessage;
     window.copyToClipboard = copyToClipboard;
+    window.removeAudioPreview = removeAudioPreview;
+
+
+
 </script>
 
 </body>
